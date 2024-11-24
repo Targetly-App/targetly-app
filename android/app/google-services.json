@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1097175702254",
+    "project_id": "targetly",
+    "storage_bucket": "targetly.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1097175702254:android:02985fd844b9960878f1ff",
+        "android_client_info": {
+          "package_name": "app.targetly"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1097175702254-3l8l3d48vha2vmnhf1v7ltj889p4lr2a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAztCy1X59RWsTu6R-HsMk3d9jIu5OdX6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1097175702254-3l8l3d48vha2vmnhf1v7ltj889p4lr2a.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1097175702254-an197g52kpilm2cl4qbtn52rr76j11fi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.targetly"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

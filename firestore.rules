@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    // Account rules
+    match /accounts/{accountId} {
+      allow read: if isOwner(accountId);
+      allow create: if isOwner(accountId);
+      allow update: if isOwner(accountId)
+                   && (
+                     'settings' in request.resource.data
+                     || 'metadata' in request.resource.data
+                   );
+      allow delete: if isOwner(accountId);
+    }
+
+    // Tasks rules
+    match /tasks/{taskId} {
+      allow read: if isOwner(resource.data.uid);
+      allow create: if isOwner(request.resource.data.uid);
+      allow update, delete: if isOwner(resource.data.uid);
+    }
+
+    // Targets rules
+    match /targets/{targetId} {
+      allow read: if isOwner(resource.data.uid);
+      allow create: if isOwner(request.resource.data.uid);
+      allow update, delete: if isOwner(resource.data.uid);
+    }
+
+    // Chat messages rules
+    match /chatMessages/{chatMessageId} {
+      allow read: if isOwner(resource.data.uid);
+      allow create: if isOwner(request.resource.data.uid);
+      allow update, delete: if isOwner(resource.data.uid);
+    }
+
+    // Purchases rules
+    match /purchases/{purchaseId} {
+      allow read: if isOwner(resource.data.uid);
+    }
+  }
+}

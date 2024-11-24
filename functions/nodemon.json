@@ -1,0 +1,11 @@
+{
+  "watch": [
+    "src/",
+    "package.json"
+  ],
+  "ext": "ts,json",
+  "ignore": [
+    "node_modules/"
+  ],
+  "exec": "npm run genkit"
+}
