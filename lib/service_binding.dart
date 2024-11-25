@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:targetly/screens/auth/sign_in/controller.dart';
 import 'package:targetly/screens/dashboard/controller.dart';
 import 'package:targetly/screens/dashboard/planning/controller.dart';
+import 'package:targetly/screens/dashboard/widgets/tasks_list/controller.dart';
 import 'package:targetly/screens/settings/controller.dart';
 import 'package:targetly/screens/targets/controller.dart';
 import 'package:targetly/screens/targets/view/controller.dart';
@@ -31,5 +32,6 @@ class ServiceBinding extends Bindings {
     Get.lazyPut(() => SettingsController(), fenix: true);
     Get.lazyPut(() => TargetViewController(), fenix: true);
     Get.lazyPut(() => TargetsController(), fenix: true);
+    Get.lazyPut(() => TasksListController(), fenix: true);
   }
 }
