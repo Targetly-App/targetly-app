@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../../app_routes.dart';
@@ -72,19 +73,26 @@ class TargetsScreen extends GetView<TargetsController> {
                       title: 'Completed'.tr,
                       actions: [
                         controller.isCompletedTargetsExpanded.value
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: TextButton(
-                                  onPressed: () {
-                                    controller
-                                            .isCompletedTargetsExpanded.value =
-                                        !controller
-                                            .isCompletedTargetsExpanded.value;
-                                  },
-                                  child: Text('Fold'.tr),
-                                ),
+                            ? TextButton.icon(
+                                icon: Icon(Iconsax.arrow_up_2_outline),
+                                onPressed: () {
+                                  controller.isCompletedTargetsExpanded.value =
+                                      !controller
+                                          .isCompletedTargetsExpanded.value;
+                                },
+                                label: Text('Roll up'.tr),
                               )
                             : SizedBox(),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: TextButton.icon(
+                            icon: Icon(Iconsax.trash_outline),
+                            onPressed: () {
+                              controller.removeAllCompletedTargets();
+                            },
+                            label: Text('Clean'.tr),
+                          ),
+                        ),
                       ],
                     ),
                   ),

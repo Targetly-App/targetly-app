@@ -97,9 +97,6 @@ class TargetEditController extends GetxController {
       int notificationId = getEnhanced32BitFromFirestoreId(task.id!);
       await _localNotificationService.cancelNotification(notificationId);
     }
-
-    // Delete target and all tasks
-    await _tasksService.deleteBatch(tasks);
     await _targetsService.delete(target.value!);
 
     // After target and tasks created we should return to the targets list

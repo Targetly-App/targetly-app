@@ -236,6 +236,21 @@ class TasksService extends GetxService {
     }
   }
 
+  Future<void> deleteByTargetId(String targetId) async {
+    final batch = _firestore.batch();
+
+    final tasks = await _tasksRef
+        .where('uid', isEqualTo: account.id)
+        .where('targetId', isEqualTo: targetId)
+        .get();
+
+    for (var task in tasks.docs) {
+      batch.delete(_tasksRef.doc(task.id));
+    }
+
+    await batch.commit();
+  }
+
   Future<void> deleteBatch(List<Task> tasks) async {
     final batch = _firestore.batch();
 

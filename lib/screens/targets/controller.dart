@@ -77,4 +77,12 @@ class TargetsController extends GetxController {
 
     return [progressPercent, details];
   }
+
+  Future<void> removeAllCompletedTargets() async {
+    isLoading.value = true;
+    for (var target in completedTargets) {
+      await _targetsService.delete(target);
+    }
+    isLoading.value = false;
+  }
 }

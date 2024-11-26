@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:targetly/services/app_service.dart';
 import 'package:targetly/services/remote_functions_service.dart';
+import 'package:targetly/services/tasks_service.dart';
 
 import '../models/account.dart';
 import '../models/target.dart';
@@ -39,6 +40,7 @@ class ClarificationQuestion {
 
 class TargetsService extends GetxService {
   final AppService _appService = Get.find();
+  final TasksService _tasksService = Get.find();
   final RemoteFunctionsService _remoteFunctionsService = Get.find();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const limitPerPage = 10;
@@ -108,6 +110,8 @@ class TargetsService extends GetxService {
 
   // Delete a target and all its tasks
   Future<void> delete(Target target) async {
+    // First delete all tasks
+    await _tasksService.deleteByTargetId(target.id!);
     // Then delete the target document
     await _targetsRef.doc(target.id).delete();
   }
