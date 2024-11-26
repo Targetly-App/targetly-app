@@ -15,8 +15,12 @@ class TargetsController extends GetxController {
   RxBool isLoading = true.obs;
   bool isOnline = false;
 
+  RxBool isCompletedTargetsExpanded = false.obs;
+
+  RxList<Target> completedTargets = <Target>[].obs;
   RxList<Target> targets = <Target>[].obs;
   late StreamSubscription<List<Target>> _targetsSubscription;
+
   RxList<Task> tasks = <Task>[].obs;
   late StreamSubscription<List<Task>> _tasksSubscription;
 
@@ -27,7 +31,14 @@ class TargetsController extends GetxController {
       tasks.value = tasksList;
 
       _targetsSubscription = _targetsService.subscribe().listen((targetsList) {
-        targets.value = targetsList;
+        completedTargets.value = targetsList.where((target) {
+          var completedPercent = getCompletedPercentage(target);
+          return completedPercent >= 1;
+        }).toList();
+        targets.value = targetsList.where((target) {
+          var completedPercent = getCompletedPercentage(target);
+          return completedPercent < 1;
+        }).toList();
         isLoading.value = false;
       });
     });

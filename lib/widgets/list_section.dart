@@ -34,7 +34,7 @@ class ListSection extends StatelessWidget {
                 : null,
             separatorColor: Theme.of(context).dividerColor,
             decoration: const BoxDecoration(
-              color: Colors.white10,
+              color: Color.fromRGBO(50, 50, 62, 1),
             ),
             children: children,
           )
@@ -55,7 +55,7 @@ class ListSection extends StatelessWidget {
             separatorColor: Theme.of(context).dividerColor,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.04),
+              color: Color.fromRGBO(50, 50, 62, 1),
             ),
             children: children,
           );

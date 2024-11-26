@@ -207,6 +207,22 @@ class SettingsScreen extends GetView<SettingsController> {
                       ],
                     ),
                     ListSection(
+                      title: 'Targets'.tr,
+                      children: [
+                        ListSectionTile(
+                          title: 'Hide on done'.tr,
+                          subtitle: 'Completed tasks will be hidden',
+                          leading: const Icon(Icons.check),
+                          trailing: Switch.adaptive(
+                              value: controller.account.value!.accountSettings
+                                  .hideCompletedTasks,
+                              onChanged: (newValue) {
+                                controller.setHideCompletedTasks(newValue);
+                              }),
+                        ),
+                      ],
+                    ),
+                    ListSection(
                       title: 'Tasks'.tr,
                       children: [
                         ListSectionTile(
