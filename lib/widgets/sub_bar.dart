@@ -11,6 +11,7 @@ class SubBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
+      surfaceTintColor: Colors.transparent,
       backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
       elevation: 0,
       titleTextStyle: Get.textTheme.bodyLarge,

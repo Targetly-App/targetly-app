@@ -51,4 +51,9 @@ class SettingsController extends GetxController {
         ?.updateSettings({'defaultNotificationsTime': value});
     await _appService.initializeLocalNotifications();
   }
+
+  Future<void> setMaxHoursPerDayForTasks(int value) async {
+    account.value =
+        await account.value?.updateSettings({'hoursPerDayForTasks': value});
+  }
 }

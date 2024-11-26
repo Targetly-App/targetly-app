@@ -207,24 +207,22 @@ class SettingsScreen extends GetView<SettingsController> {
                       ],
                     ),
                     ListSection(
-                      title: 'Targets'.tr,
-                      children: [
-                        ListSectionTile(
-                          title: 'Hide on done'.tr,
-                          subtitle: 'Completed tasks will be hidden',
-                          leading: const Icon(Icons.check),
-                          trailing: Switch.adaptive(
-                              value: controller.account.value!.accountSettings
-                                  .hideCompletedTasks,
-                              onChanged: (newValue) {
-                                controller.setHideCompletedTasks(newValue);
-                              }),
-                        ),
-                      ],
-                    ),
-                    ListSection(
                       title: 'Tasks'.tr,
                       children: [
+                        ListSectionTile(
+                          title: 'Max hours per day for tasks'.tr,
+                          subtitle:
+                              "${controller.account.value?.accountSettings.hoursPerDayForTasks.toString()} hours per day",
+                          leading: const Icon(Iconsax.timer_1_outline),
+                          onTap: () {
+                            var hoursPerDay = controller.account.value!
+                                .accountSettings.hoursPerDayForTasks;
+                            _showMaxTasksHoursPicker(
+                              context,
+                              hoursPerDay,
+                            );
+                          },
+                        ),
                         ListSectionTile(
                           title: 'Hide completed tasks'.tr,
                           subtitle: 'Completed tasks will be hidden',
@@ -277,5 +275,42 @@ class SettingsScreen extends GetView<SettingsController> {
             );
           });
         });
+  }
+
+  void _showMaxTasksHoursPicker(BuildContext context, int selectedValue) {
+    List<int> values = List.generate(24, (index) => index + 1);
+    FixedExtentScrollController scrollController =
+        FixedExtentScrollController(initialItem: selectedValue - 1);
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => Container(
+        color: CupertinoColors.darkBackgroundGray,
+        height: 270,
+        child: Column(
+          children: [
+            SizedBox(
+              height: 200,
+              child: CupertinoPicker(
+                scrollController: scrollController,
+                itemExtent: 32.0,
+                children: [
+                  for (dynamic value in values) Text(value.toString()),
+                ],
+                onSelectedItemChanged: (int index) {
+                  selectedValue = values[index];
+                },
+              ),
+            ),
+            CupertinoButton(
+              child: const Text('Done'),
+              onPressed: () {
+                controller.setMaxHoursPerDayForTasks(selectedValue);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -155,7 +155,7 @@ class TargetsService extends GetxService {
     }
   }
 
-  double getCompletedPercentage(Target target, List<Task> tasks) {
+  double calculateTasksTime(List<Task> tasks) {
     if (tasks.isEmpty) {
       return 0;
     }
@@ -164,17 +164,24 @@ class TargetsService extends GetxService {
         .map((task) => parseDuration(task.duration) * task.iterations)
         .reduce((value, element) => value + element);
 
+    return totalMinutes.toDouble();
+  }
+
+  double getCompletedPercentage(Target target, List<Task> tasks) {
+    if (tasks.isEmpty) {
+      return 0;
+    }
+
+    var totalMinutes = calculateTasksTime(tasks);
+
     var completedTasks = tasks
         .where((task) =>
             task.status == TaskStatus.completed.value ||
             task.currentIteration > 0)
         .toList();
 
-    var completedMinutes = completedTasks.isEmpty
-        ? 0
-        : completedTasks
-            .map((task) => parseDuration(task.duration) * task.currentIteration)
-            .reduce((value, element) => value + element);
+    var completedMinutes =
+        completedTasks.isEmpty ? 0 : calculateTasksTime(completedTasks);
 
     return completedMinutes / totalMinutes;
   }

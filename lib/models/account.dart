@@ -316,6 +316,8 @@ class AccountSettings {
 
   bool get hideAwaitingTasks => _settings['hideAwaitingTasks'] ?? false;
 
+  int get hoursPerDayForTasks => _settings['hoursPerDayForTasks'] ?? 8;
+
   // Convert settings to map
   Map<String, dynamic> toMap() => _settings;
 
@@ -328,5 +330,6 @@ class AccountSettings {
         'defaultNotificationsTime': '9:00 AM',
         'hideCompletedTasks': false,
         'hideAwaitingTasks': false,
+        'hoursPerDayForTasks': 8,
       };
 }

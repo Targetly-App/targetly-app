@@ -123,10 +123,12 @@ class TargetsScreen extends GetView<TargetsController> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final target = controller.targets[index];
-                      var completedPercent =
-                          controller.getCompletedPercentage(target);
+                      var [completedPercent, details] =
+                          controller.getProgressDetails(target);
+
                       return TargetWidget(
                         target,
+                        progress: details,
                         completedPercent: completedPercent,
                         onTap: () {
                           Get.toNamed(AppRoutes.targetView, arguments: {
@@ -135,10 +137,7 @@ class TargetsScreen extends GetView<TargetsController> {
                         },
                       );
                     },
-                    childCount: controller.targets
-                        .where((target) =>
-                            controller.getCompletedPercentage(target) < 1.0)
-                        .length,
+                    childCount: controller.targets.length,
                   ),
                 ),
               ],
