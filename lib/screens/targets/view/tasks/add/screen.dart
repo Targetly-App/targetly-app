@@ -15,6 +15,7 @@ class AddTaskScreen extends GetView<AddTaskController> {
       init: AddTaskController(),
       builder: (AddTaskController controller) {
         return SafeArea(
+          bottom: false,
           child: Scaffold(
             appBar: AppBar(
               backgroundColor: const Color.fromRGBO(0, 0, 0, 0),

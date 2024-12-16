@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:targetly/screens/dashboard/widgets/tasks_list/widget.dart';
 import 'package:targetly/services/app_service.dart';
@@ -11,7 +12,7 @@ import '../../models/target.dart';
 import '../../models/task.dart';
 import '../../utils.dart';
 
-class DashboardController extends GetxController {
+class DashboardController extends GetxController with WidgetsBindingObserver {
   RxBool isLoading = true.obs;
 
   RxMap<String, List<Task>> groupedTasks = <String, List<Task>>{}.obs;
@@ -32,46 +33,38 @@ class DashboardController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
+    isLoading.value = true;
+    await refreshData();
+    isLoading.value = false;
+  }
 
-    _targetsSubscription = _targetsService.subscribe().listen((updatedTargets) {
-      isLoading.value = true;
-      targets.value = updatedTargets;
+  Future<void> refreshData() async {
+    targets.value = await _targetsService.getTargets();
+    var tasksStatuses = [TaskStatus.planned.name, TaskStatus.completed.name];
+    List<Task> tasks = await _tasksService.getTasks(statuses: tasksStatuses);
 
-      // We will subscribe on all tasks statuses but will filter them later
-      var tasksStatuses = [TaskStatus.planned.name, TaskStatus.completed.name];
+    // Filter tasks by settings
+    tasks = tasks.where((task) {
+      var [isCompleted, timeCounterPercent] =
+          _tasksService.getTaskCompletions(task);
+      if (account.settings['hideAwaitingTasks'] == true &&
+          isCompleted == true &&
+          timeCounterPercent > 0 &&
+          task.currentIteration < task.iterations &&
+          task.completedAt != null) {
+        return false;
+      }
 
-      _tasksSubscription = _tasksService
-          .subscribe(statuses: tasksStatuses)
-          .listen((tasksFromStream) {
-        try {
-          if (tasksFromStream.isEmpty) {
-            isLoading.value = false;
-            return;
-          }
+      if (account.settings['hideCompletedTasks'] == true &&
+          task.status == TaskStatus.completed.name) {
+        return false;
+      }
+      return true;
+    }).toList();
 
-          // Filter tasks by settings
-          tasksFromStream = tasksFromStream.where((task) {
-            if (account.settings['hideAwaitingTasks'] == true &&
-                task.currentIteration < task.iterations &&
-                task.currentIteration > 0 &&
-                task.completedAt != null) {
-              return false;
-            }
+    plannedTasks.value = tasks;
 
-            if (account.settings['hideCompletedTasks'] == true &&
-                task.status == TaskStatus.completed.name) {
-              return false;
-            }
-            return true;
-          }).toList();
-
-          updateTasks(tasksFromStream);
-          isLoading.value = false;
-        } catch (e) {
-          print(e);
-        }
-      });
-    });
+    updateTasks(tasks);
   }
 
   void updateTasks(List<Task> tasks) {

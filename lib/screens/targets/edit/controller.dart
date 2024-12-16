@@ -9,7 +9,6 @@ import '../../../services/local_notification_service.dart';
 import '../../../services/snack_bar_service.dart';
 import '../../../services/targets_service.dart';
 import '../../../services/tasks_service.dart';
-import '../../../utils.dart';
 import '../../../widgets/step_wizard/views/properties.dart';
 import '../../../widgets/step_wizard/widget.dart';
 
@@ -94,8 +93,7 @@ class TargetEditController extends GetxController {
 
     // Before remove target need remove all notifications related to this target
     for (Task task in tasks) {
-      int notificationId = getEnhanced32BitFromFirestoreId(task.id!);
-      await _localNotificationService.cancelNotification(notificationId);
+      await _localNotificationService.cancelTaskNotification(task.id!);
     }
     await _targetsService.delete(target.value!);
 

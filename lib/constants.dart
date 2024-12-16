@@ -1,5 +1,30 @@
 final taskRepeats = ["once", "hourly", "daily", "weekly", "monthly", "yearly"];
+final daysOfWeek = ["M", "T", "W", "T", "F", "S", "S"];
 // 1-99
+final impactLevels = [
+  "Nice to Have",
+  "Slightly Important",
+  "Somewhat Important",
+  "Moderately Important",
+  "Important",
+  "Quite Important",
+  "Very Important",
+  "Highly Important",
+  "Essential",
+  "Critical",
+];
+final effortLevels = [
+  "Tiny",
+  "Very Small",
+  "Small",
+  "Light",
+  "Medium",
+  "Above Medium",
+  "Large",
+  "Very Large",
+  "Huge",
+  "Massive",
+];
 final taskIterations = List.generate(99, (index) => (index + 1).toString());
 final taskDurations = [
   "5m",

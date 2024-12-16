@@ -46,6 +46,12 @@ class SettingsController extends GetxController {
     logout();
   }
 
+  Future<void> setDefaultNotificationWeekDays(List<int> value) async {
+    account.value = await account.value
+        ?.updateSettings({'defaultNotificationsWeekDays': value});
+    await _appService.initializeLocalNotifications();
+  }
+
   Future<void> setDefaultNotificationTime(String value) async {
     account.value = await account.value
         ?.updateSettings({'defaultNotificationsTime': value});

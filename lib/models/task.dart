@@ -113,6 +113,8 @@ class Task {
   final int effort;
   final String duration;
   final String repeats;
+  final List<int>? reminderWeekdays;
+  final String? reminderTime;
   final int iterations;
   final int currentIteration;
   final int step;
@@ -136,6 +138,8 @@ class Task {
     this.effort = 0,
     required this.duration,
     required this.repeats,
+    this.reminderWeekdays = const [],
+    this.reminderTime,
     required this.iterations,
     this.currentIteration = 0,
     required this.step,
@@ -160,6 +164,9 @@ class Task {
       effort: json['effort'] ?? 0,
       duration: json['duration'] ?? '',
       repeats: json['repeats'] ?? '',
+      reminderWeekdays: json[
+          'reminderWeekdays'], // if null, then we will use default settings
+      reminderTime: json['reminderTime'],
       iterations: json['iterations'] ?? 0,
       currentIteration: json['currentIteration'] ?? 0,
       step: json['step'] ?? 0,
@@ -195,6 +202,10 @@ class Task {
       effort: data['effort'] ?? 0,
       duration: data['duration'] ?? '',
       repeats: data['repeats'] ?? '',
+      reminderWeekdays: data['reminderWeekdays'] != null
+          ? List<int>.from(data['reminderWeekdays'])
+          : null,
+      reminderTime: data['reminderTime'],
       iterations: data['iterations'] ?? 0,
       currentIteration: data['currentIteration'] ?? 0,
       step: data['step'] ?? 0,
@@ -231,6 +242,8 @@ class Task {
       'effort': effort,
       'duration': duration,
       'repeats': repeats,
+      'reminderWeekdays': reminderWeekdays,
+      'reminderTime': reminderTime,
       'iterations': iterations,
       'currentIteration': currentIteration,
       'step': step,
@@ -256,6 +269,8 @@ class Task {
     int? effort,
     String? duration,
     String? repeats,
+    List<int>? reminderWeekdays,
+    String? reminderTime,
     int? iterations,
     int? currentIteration,
     int? step,
@@ -275,6 +290,8 @@ class Task {
       effort: effort ?? this.effort,
       duration: duration ?? this.duration,
       repeats: repeats ?? this.repeats,
+      reminderWeekdays: reminderWeekdays ?? this.reminderWeekdays,
+      reminderTime: reminderTime ?? this.reminderTime,
       iterations: iterations ?? this.iterations,
       currentIteration: currentIteration ?? this.currentIteration,
       step: step ?? this.step,
@@ -287,6 +304,8 @@ class Task {
   }
 
   Task copyWithNull({
+    bool? reminderWeekdays = false,
+    bool? reminderTime = false,
     bool? targetId = false,
     bool? isCompleted = false,
     bool? isPlanned = false,
@@ -307,6 +326,9 @@ class Task {
       iterations: iterations,
       currentIteration: currentIteration,
       step: step,
+      dependencies: dependencies,
+      reminderWeekdays: reminderWeekdays == true ? null : this.reminderWeekdays,
+      reminderTime: reminderTime == true ? null : this.reminderTime,
       targetId: targetId == true ? null : this.targetId,
       isCompleted: isCompleted == true ? null : this.isCompleted,
       isPlanned: isPlanned == true ? null : this.isPlanned,

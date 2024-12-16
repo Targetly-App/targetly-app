@@ -1,5 +1,5 @@
 ---
-model: vertexai/gemini-1.5-flash
+model: vertexai/claude-3-5-sonnet-v2
 config:
   temperature: 0.5
 input:
@@ -17,6 +17,8 @@ For example this can be questions to clarify current state of user in context of
 or about user knowledge that can help reach target.
 Answers on this questions should be helpful for you to generate list of relevant tasks on next step.
 Questions should be short as possible.
+
+You SHOULD return only items array data, I no need $schema and other meta fields. 
 
 Target title: {{targetTitle}}
 {{#if targetDescription}}

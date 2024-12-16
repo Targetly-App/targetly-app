@@ -1,88 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../constants.dart';
+import '../models/account.dart';
 import '../models/task.dart';
-
-class InfoCard extends StatelessWidget {
-  final String title;
-  final String content;
-  final double widthFactor;
-  final double heightFactor;
-  final Color backgroundColor;
-
-  const InfoCard({
-    super.key,
-    required this.title,
-    required this.content,
-    this.widthFactor = 1.0,
-    this.heightFactor = 1.0,
-    this.backgroundColor = const Color(0xFF2C2C2E),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width * widthFactor,
-      constraints: BoxConstraints(
-        minHeight: 80 * heightFactor,
-      ),
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              overflow: TextOverflow.ellipsis,
-              title.tr.toUpperCase(),
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Colors.white70,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              content,
-              style: const TextStyle(
-                fontSize: 15,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+import '../services/app_service.dart';
+import 'info_card.dart';
 
 class TaskDetails extends StatelessWidget {
   final Task task;
   const TaskDetails({super.key, required this.task});
 
+  Account get account => Get.find<AppService>().currentAccount()!;
+
   @override
   Widget build(BuildContext context) {
+    // Getting impact level description based on the impact index
+    List<int> weekDays = task.reminderWeekdays ??
+        account.accountSettings.defaultNotificationsWeekDays;
+    String reminderTime =
+        task.reminderTime ?? account.accountSettings.defaultNotificationsTime;
     return SingleChildScrollView(
       child: Column(
         children: [
           // Title card (full width)
           InfoCard(
-            title: "Task title",
+            title: "Title",
             content: task.title,
             backgroundColor: const Color(0xFF1C1C1E),
             heightFactor: 1.0,
@@ -120,6 +63,26 @@ class TaskDetails extends StatelessWidget {
                   title: "Iterations",
                   content: "${task.currentIteration} / ${task.iterations}",
                   widthFactor: 1 / 3,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: InfoCard(
+                  title: "Notifications days",
+                  content:
+                      weekDays.map((dayNum) => daysOfWeek[dayNum]).join(' '),
+                  widthFactor: 1 / 2,
+                ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: InfoCard(
+                  title: "Notifications time",
+                  content: reminderTime,
+                  widthFactor: 1 / 2,
                 ),
               ),
             ],

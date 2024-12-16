@@ -11,6 +11,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:targetly/app_routes.dart';
 import 'package:targetly/service_binding.dart';
+import 'package:targetly/services/local_notification_service.dart';
 import 'package:targetly/services/snack_bar_service.dart';
 import 'package:targetly/services/tasks_service.dart';
 
@@ -22,6 +23,7 @@ import '../utils.dart';
 class AppService extends GetxService {
   static AppService get to => Get.find();
   static TasksService get _tasksService => Get.find();
+  static LocalNotificationService get _localNotificationService => Get.find();
 
   // Firebase instances
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -79,6 +81,7 @@ class AppService extends GetxService {
         // For other platforms, use default settings
         _firestore.settings = const Settings(
           persistenceEnabled: true,
+          cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
         );
       }
 
@@ -136,7 +139,7 @@ class AppService extends GetxService {
       final batch = _firestore.batch();
       for (var task in planned.docs) {
         final updatedTask = Task.fromFirestore(task);
-        await _tasksService.updateLocalNotification(updatedTask);
+        await _localNotificationService.updateTaskNotification(updatedTask);
         batch.update(task.reference, updatedTask.toFirestore());
       }
       await batch.commit();

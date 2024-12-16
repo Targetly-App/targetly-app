@@ -2,16 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:targetly/services/app_service.dart';
 
 import '../../../analysers/decart_tasks_analyser.dart';
 import '../../../analysers/pareto_tasks_analyser.dart';
 import '../../../app_routes.dart';
 import '../../../models/target.dart';
 import '../../../models/task.dart';
+import '../../../services/local_notification_service.dart';
 import '../../../services/targets_service.dart';
 import '../../../services/tasks_service.dart';
 import '../../../utils.dart';
+import '../controller.dart';
 import 'layers/decart_squire/decart_squire.dart';
 
 class PlanningStackController extends GetxController {
@@ -25,9 +26,10 @@ class PlanningStackController extends GetxController {
     'Only 20% of tasks bring 80% of results',
   ];
 
-  final AppService _appService = Get.find();
   final TargetsService _targetsService = Get.find();
   final TasksService _tasksService = Get.find();
+  final DashboardController _dashboardController = Get.find();
+  final LocalNotificationService _notificationService = Get.find();
 
   RxMap<String, List<Task>> groupedTasks = <String, List<Task>>{}.obs;
   final RxList<Target> targets = <Target>[].obs;
@@ -136,6 +138,7 @@ class PlanningStackController extends GetxController {
 
   @override
   void onClose() {
+    _dashboardController.refreshData();
     _targetsSubscription?.cancel();
     _tasksSubscription?.cancel();
     super.onClose();
@@ -178,7 +181,7 @@ class PlanningStackController extends GetxController {
         toggleTask.status == TaskStatus.todo.name
             ? TaskStatus.planned.name
             : TaskStatus.todo.name);
-    await _tasksService.updateLocalNotification(updatedTask);
+    await _notificationService.updateTaskNotification(updatedTask);
   }
 
   List getTaskCompletions(Task task) {

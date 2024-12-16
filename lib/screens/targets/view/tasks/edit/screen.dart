@@ -18,6 +18,7 @@ class TaskEditScreen extends GetView<TaskEditController> {
         }
 
         return SafeArea(
+          bottom: false,
           child: Scaffold(
             resizeToAvoidBottomInset: true,
             appBar: AppBar(
@@ -25,7 +26,7 @@ class TaskEditScreen extends GetView<TaskEditController> {
               elevation: 0,
               title: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Edit target details'.tr),
+                child: Text('Edit task details'.tr),
               ),
               actions: [
                 Padding(

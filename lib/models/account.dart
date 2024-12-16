@@ -309,6 +309,8 @@ class AccountSettings {
   String get region => _settings['locale']?['region'] ?? 'US';
 
   // Notification settings
+  List<int> get defaultNotificationsWeekDays => List<int>.from(
+      _settings['defaultNotificationsWeekDays'] ?? [0, 1, 2, 3, 4]);
   String get defaultNotificationsTime =>
       _settings['defaultNotificationsTime'] ?? '9:00 AM';
 
@@ -327,6 +329,7 @@ class AccountSettings {
           'language': 'en',
           'region': 'US',
         },
+        'defaultNotificationsWeekDays': [0, 1, 2, 3, 4],
         'defaultNotificationsTime': '9:00 AM',
         'hideCompletedTasks': false,
         'hideAwaitingTasks': false,

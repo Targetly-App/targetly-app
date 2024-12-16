@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:targetly/app_routes.dart';
 
 import '../../../models/task.dart';
 import '../../../widgets/task_card.dart';
 import 'controller.dart';
-import 'layers/decart_squire/layer.dart';
-import 'layers/pareto.dart';
 import 'layers/simple_list.dart';
 
 @immutable
@@ -41,12 +38,12 @@ class PlanningStackScreen extends GetWidget<PlanningStackController> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Planning'.tr, style: const TextStyle(fontSize: 20)),
-                      controller.tasks.isEmpty
-                          ? SizedBox()
-                          : Text(
-                              controller
-                                  .layerTitles[controller.selectedLayer.value],
-                              style: TextStyle(fontSize: 14)),
+                      // controller.tasks.isEmpty
+                      //     ? SizedBox()
+                      //     : Text(
+                      //         controller
+                      //             .layerTitles[controller.selectedLayer.value],
+                      //         style: TextStyle(fontSize: 14)),
                     ],
                   ),
                 ),
@@ -69,43 +66,43 @@ class PlanningStackScreen extends GetWidget<PlanningStackController> {
                   // ),
                 ],
               ),
-              bottomNavigationBar: controller.tasks.isEmpty
-                  ? null
-                  : BottomNavigationBar(
-                      currentIndex: controller.selectedLayer.value,
-                      type: BottomNavigationBarType.fixed,
-                      selectedLabelStyle: const TextStyle(fontSize: 12.0),
-                      unselectedLabelStyle: const TextStyle(fontSize: 12.0),
-                      onTap: (index) {
-                        controller.layerViewController.animateToPage(index,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut);
-                      },
-                      items: [
-                        BottomNavigationBarItem(
-                          icon: const Icon(Iconsax.task_square_outline),
-                          activeIcon: const Padding(
-                            padding: EdgeInsets.only(left: 21),
-                            child: Icon(Iconsax.task_square_bold),
-                          ),
-                          label: "Simple list".tr,
-                        ),
-                        BottomNavigationBarItem(
-                          icon: const Icon(Iconsax.grid_2_outline),
-                          activeIcon: const Icon(Iconsax.grid_2_bold),
-                          label: "Decart's squires".tr,
-                        ),
-                        BottomNavigationBarItem(
-                          icon: RotatedBox(
-                              quarterTurns: 1,
-                              child: const Icon(Iconsax.grid_4_outline)),
-                          activeIcon: RotatedBox(
-                              quarterTurns: 1,
-                              child: const Icon(Iconsax.grid_4_bold)),
-                          label: "Pareto analyse".tr,
-                        ),
-                      ],
-                    ),
+              // bottomNavigationBar: controller.tasks.isEmpty
+              //     ? null
+              //     : BottomNavigationBar(
+              //         currentIndex: controller.selectedLayer.value,
+              //         type: BottomNavigationBarType.fixed,
+              //         selectedLabelStyle: const TextStyle(fontSize: 12.0),
+              //         unselectedLabelStyle: const TextStyle(fontSize: 12.0),
+              //         onTap: (index) {
+              //           controller.layerViewController.animateToPage(index,
+              //               duration: const Duration(milliseconds: 300),
+              //               curve: Curves.easeInOut);
+              //         },
+              //         items: [
+              //           BottomNavigationBarItem(
+              //             icon: const Icon(Iconsax.task_square_outline),
+              //             activeIcon: const Padding(
+              //               padding: EdgeInsets.only(left: 21),
+              //               child: Icon(Iconsax.task_square_bold),
+              //             ),
+              //             label: "Simple list".tr,
+              //           ),
+              //           BottomNavigationBarItem(
+              //             icon: const Icon(Iconsax.grid_2_outline),
+              //             activeIcon: const Icon(Iconsax.grid_2_bold),
+              //             label: "Decart's squires".tr,
+              //           ),
+              //           BottomNavigationBarItem(
+              //             icon: RotatedBox(
+              //                 quarterTurns: 1,
+              //                 child: const Icon(Iconsax.grid_4_outline)),
+              //             activeIcon: RotatedBox(
+              //                 quarterTurns: 1,
+              //                 child: const Icon(Iconsax.grid_4_bold)),
+              //             label: "Pareto analyse".tr,
+              //           ),
+              //         ],
+              //       ),
               body: controller.tasks.isEmpty
                   ? Center(
                       child: Column(
@@ -128,8 +125,8 @@ class PlanningStackScreen extends GetWidget<PlanningStackController> {
                       controller: controller.layerViewController,
                       children: [
                         SimpleListLayer(),
-                        DecartSquireLayer(),
-                        ParetoLayer(),
+                        // DecartSquireLayer(),
+                        // ParetoLayer(),
                       ],
                       onPageChanged: (index) {
                         controller.setSelectedLayer(index);

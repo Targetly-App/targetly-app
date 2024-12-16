@@ -7,7 +7,6 @@ import 'package:targetly/services/tasks_service.dart';
 
 import '../../models/target.dart';
 import '../../models/task.dart';
-import '../../widgets/goal_deadline_progress.dart';
 
 class TargetsController extends GetxController {
   final _appService = Get.find<AppService>();
@@ -33,11 +32,17 @@ class TargetsController extends GetxController {
 
       _targetsSubscription = _targetsService.subscribe().listen((targetsList) {
         completedTargets.value = targetsList.where((target) {
-          var [completedPercent, _] = getProgressDetails(target);
+          var targetTasks =
+              tasks.where((task) => task.targetId == target.id).toList();
+          var completedPercent =
+              _targetsService.getCompletedPercentage(target, targetTasks);
           return completedPercent >= 1;
         }).toList();
         targets.value = targetsList.where((target) {
-          var [completedPercent, _] = getProgressDetails(target);
+          var targetTasks =
+              tasks.where((task) => task.targetId == target.id).toList();
+          var completedPercent =
+              _targetsService.getCompletedPercentage(target, targetTasks);
           return completedPercent < 1;
         }).toList();
         isLoading.value = false;
@@ -55,34 +60,17 @@ class TargetsController extends GetxController {
     super.onClose();
   }
 
-  List getProgressDetails(Target target) {
-    final targetTasks =
-        tasks.where((task) => task.targetId == target.id).toList();
-    double progressPercent =
-        _targetsService.getCompletedPercentage(target, targetTasks);
-
-    var notCompletedTasks = targetTasks.where((task) {
-      return task.status != TaskStatus.completed.value;
-    }).toList();
-
-    var notCompletedTasksMinutes =
-        _targetsService.calculateTasksTime(notCompletedTasks);
-
-    var details = DeadlineProgress.calculate(
-      maxHoursPerDay:
-          _appService.currentAccount.value!.settings['hoursPerDayForTasks'],
-      deadline: target.deadline!,
-      totalTasksDuration: Duration(minutes: notCompletedTasksMinutes.toInt()),
-    );
-
-    return [progressPercent, details];
-  }
-
   Future<void> removeAllCompletedTargets() async {
     isLoading.value = true;
     for (var target in completedTargets) {
       await _targetsService.delete(target);
     }
     isLoading.value = false;
+  }
+
+  double getCompletedPercentage(Target target) {
+    var targetTasks =
+        tasks.where((task) => task.targetId == target.id).toList();
+    return _targetsService.getCompletedPercentage(target, targetTasks);
   }
 }

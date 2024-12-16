@@ -9,6 +9,7 @@ import '../models/account.dart';
 import '../models/target.dart';
 import '../models/task.dart';
 import '../utils.dart';
+import '../widgets/time_buffer_indicator.dart';
 
 class ClarificationQuestion {
   final String title;
@@ -57,12 +58,18 @@ class TargetsService extends GetxService {
         .map((doc) => doc.exists ? Target.fromFirestore(doc) : null);
   }
 
+  Future<List<Target>> getTargets() async {
+    final snapshot =
+        await _targetsRef.where('uid', isEqualTo: account.id).get();
+    return snapshot.docs.map((doc) => Target.fromFirestore(doc)).toList();
+  }
+
   // Create a new target with tasks
   Future<Target> create(Target target, List<Task> tasks) async {
     // Create the target document
     final targetDoc = await _targetsRef.add(target.toFirestore());
 
-    // Create subcollection for tasks
+    // Create sub collection for tasks
     final tasksCollection = targetDoc.collection('tasks');
 
     // Add all tasks
@@ -159,14 +166,17 @@ class TargetsService extends GetxService {
     }
   }
 
-  double calculateTasksTime(List<Task> tasks) {
+  double calculateTasksTime(List<Task> tasks, {bool allIterations = false}) {
     if (tasks.isEmpty) {
       return 0;
     }
 
-    var totalMinutes = tasks
-        .map((task) => parseDuration(task.duration) * task.iterations)
-        .reduce((value, element) => value + element);
+    var totalMinutes = tasks.map((task) {
+      var restIterations = allIterations
+          ? task.iterations
+          : task.iterations - task.currentIteration;
+      return parseDuration(task.duration) * restIterations;
+    }).reduce((value, element) => value + element);
 
     return totalMinutes.toDouble();
   }
@@ -175,19 +185,10 @@ class TargetsService extends GetxService {
     if (tasks.isEmpty) {
       return 0;
     }
+    var totalMinutes = calculateTasksTime(tasks, allIterations: true);
+    var restMinutes = calculateTasksTime(tasks, allIterations: false);
 
-    var totalMinutes = calculateTasksTime(tasks);
-
-    var completedTasks = tasks
-        .where((task) =>
-            task.status == TaskStatus.completed.value ||
-            task.currentIteration > 0)
-        .toList();
-
-    var completedMinutes =
-        completedTasks.isEmpty ? 0 : calculateTasksTime(completedTasks);
-
-    return completedMinutes / totalMinutes;
+    return 1 - restMinutes / totalMinutes;
   }
 
   Future<void> deleteAll() async {
@@ -198,5 +199,25 @@ class TargetsService extends GetxService {
       batch.delete(target.reference);
     }
     await batch.commit();
+  }
+
+  Future<TimeDetails> getTimeDetails(Target target) async {
+    var targetTasks = await _tasksService.getTasksByTargetId(target.id!);
+
+    var notCompletedTasks = targetTasks.where((task) {
+      return task.status != TaskStatus.completed.value;
+    }).toList();
+
+    var notCompletedTasksMinutes =
+        calculateTasksTime(notCompletedTasks, allIterations: false);
+
+    var details = TimeDetails.calculate(
+      maxHoursPerDay:
+          _appService.currentAccount.value!.settings['hoursPerDayForTasks'],
+      deadline: target.deadline!,
+      totalTasksDuration: Duration(minutes: notCompletedTasksMinutes.toInt()),
+    );
+
+    return details;
   }
 }

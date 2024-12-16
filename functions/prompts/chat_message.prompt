@@ -1,5 +1,5 @@
 ---
-model: vertexai/gemini-1.5-pro
+model: vertexai/claude-3-5-sonnet-v2
 config:
   temperature: 0.5
 input:

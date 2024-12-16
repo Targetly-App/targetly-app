@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:targetly/helpers.dart';
 import 'package:targetly/screens/targets/view/tasks/add/screen.dart';
 import 'package:targetly/services/snack_bar_service.dart';
 
@@ -27,6 +28,7 @@ class TargetViewScreen extends GetView<TargetViewController> {
           }
 
           return SafeArea(
+            bottom: false,
             child: Scaffold(
               appBar: AppBar(
                 backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
@@ -110,6 +112,34 @@ class TargetViewScreen extends GetView<TargetViewController> {
               title: Text('Description'.tr),
               subtitle: Text(target.description!),
             ),
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Deadline'.tr),
+                  subtitle: Text(target.deadline != null
+                      ? getFormattedDate(target.deadline!)
+                      : 'No deadline'.tr),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Completed'.tr),
+                  subtitle: Text(
+                      '${(controller.completedPercentage * 100).toInt()}%'),
+                ),
+              ),
+            ],
+          ),
+          // ListTile(
+          //   title: Text('Time available'.tr),
+          //   subtitle: Padding(
+          //     padding: const EdgeInsets.only(top: 8),
+          //     child: TimeBufferIndicator(
+          //       details: controller.timeDetails,
+          //     ),
+          //   ),
+          // ),
           const Divider(),
           SubBar(
             title: 'Tasks'.tr,
@@ -163,8 +193,10 @@ class TargetViewScreen extends GetView<TargetViewController> {
             target: target,
             tasks: tasks,
             onTaskTap: (Task task) {
-              Get.toNamed(AppRoutes.targetTask,
-                  arguments: {'target': target, 'task': task});
+              Get.toNamed(
+                AppRoutes.targetTask,
+                arguments: {'target': target, 'task': task},
+              );
             },
           ),
         ],

@@ -18,6 +18,7 @@ class TargetEditScreen extends GetView<TargetEditController> {
           }
 
           return SafeArea(
+            bottom: false,
             child: Scaffold(
               resizeToAvoidBottomInset: true,
               appBar: AppBar(

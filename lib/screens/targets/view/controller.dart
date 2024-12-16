@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:get/get.dart';
 import 'package:targetly/services/app_service.dart';
+import 'package:targetly/widgets/time_buffer_indicator.dart';
 
 import '../../../models/account.dart';
 import '../../../models/target.dart';
@@ -22,6 +23,9 @@ class TargetViewController extends GetxController {
   final AppService _appService = Get.find();
   Account get account => _appService.currentAccount()!;
 
+  RxDouble completedPercentage = 0.0.obs;
+  late TimeDetails timeDetails;
+
   @override
   void onInit() async {
     super.onInit();
@@ -32,8 +36,12 @@ class TargetViewController extends GetxController {
 
       _tasksSubscription = _tasksService
           .subscribeOnTargetId(targetId: targetId)
-          .listen((tasksFromStream) {
+          .listen((tasksFromStream) async {
         tasks.value = tasksFromStream;
+
+        completedPercentage.value = _targetsService.getCompletedPercentage(
+            target.value!, tasksFromStream);
+        timeDetails = await _targetsService.getTimeDetails(target.value!);
         isLoading.value = false;
       });
     });

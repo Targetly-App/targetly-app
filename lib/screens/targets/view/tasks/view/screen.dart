@@ -17,6 +17,7 @@ class TaskViewScreen extends GetView<TaskStackViewController> {
       init: TaskStackViewController(),
       builder: (TaskStackViewController controller) {
         return SafeArea(
+          bottom: false,
           child: Scaffold(
             appBar: AppBar(
               backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
@@ -30,8 +31,10 @@ class TaskViewScreen extends GetView<TaskStackViewController> {
                   padding: const EdgeInsets.only(right: 10),
                   child: TextButton(
                     onPressed: () async {
-                      await Get.toNamed(AppRoutes.editTargetTask,
-                          arguments: {'task': controller.task});
+                      await Get.toNamed(AppRoutes.editTargetTask, arguments: {
+                        'target': controller.target,
+                        'task': controller.task
+                      });
                     },
                     child: Text('Edit'.tr),
                   ),
@@ -41,39 +44,37 @@ class TaskViewScreen extends GetView<TaskStackViewController> {
             bottomNavigationBar: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Button(
-                  text: 'Open chat',
-                  onPressed: () {
-                    showCupertinoModalBottomSheet(
-                      expand: false,
-                      context: context,
-                      builder: (context) => Stack(
-                        children: [
-                          Scaffold(
-                            appBar: AppBar(
-                              backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
-                              elevation: 0,
-                              title: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text('Task chat'.tr),
-                              ),
+                text: 'Open chat',
+                onPressed: () {
+                  showCupertinoModalBottomSheet(
+                    expand: false,
+                    context: context,
+                    builder: (context) => Stack(
+                      children: [
+                        Scaffold(
+                          appBar: AppBar(
+                            backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
+                            elevation: 0,
+                            title: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text('Task chat'.tr),
                             ),
-                            body: ChatWidget(
-                                target: controller.target,
-                                task: controller.task),
-                          )
-                        ],
-                      ),
-                    );
-                  },
-                  isLoading: false),
+                          ),
+                          body: ChatWidget(
+                              target: controller.target, task: controller.task),
+                        )
+                      ],
+                    ),
+                  );
+                },
+                isLoading: false,
+              ),
             ),
             body: Builder(
               builder: (context) {
-                return SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: TaskDetails(task: controller.task),
-                  ),
+                return Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: TaskDetails(task: controller.task),
                 );
               },
             ),

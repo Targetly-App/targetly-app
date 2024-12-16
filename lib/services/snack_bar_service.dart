@@ -154,16 +154,16 @@ class SnackBarService {
                               ),
                             ),
                     ),
-                    IconButton(
-                      onPressed: _removeCurrentSnackBar,
-                      icon: Icon(
-                        Icons.close,
-                        color: textColor.withOpacity(0.7),
-                        size: 20,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
+                    // IconButton(
+                    //   onPressed: _removeCurrentSnackBar,
+                    //   icon: Icon(
+                    //     Icons.close,
+                    //     color: textColor.withOpacity(0.7),
+                    //     size: 20,
+                    //   ),
+                    //   padding: EdgeInsets.zero,
+                    //   constraints: const BoxConstraints(),
+                    // ),
                   ],
                 ),
               ),

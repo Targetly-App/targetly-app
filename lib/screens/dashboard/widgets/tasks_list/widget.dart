@@ -15,26 +15,21 @@ class TasksListWidget extends GetWidget<TasksListController> {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<TasksListController>(
-      init: TasksListController(),
-      builder: (controller) {
-        return Obx(() {
-          if (controller.isLoading.value) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
 
-          if (controller.groupedTasks.keys.isEmpty) {
-            return Center(
-              child: Text('No planned tasks'.tr),
-            );
-          }
+      if (controller.groupedTasks.keys.isEmpty) {
+        return Center(
+          child: Text('No planned tasks'.tr),
+        );
+      }
 
-          return getGroupedTasksList(controller);
-        });
-      },
-    );
+      return getGroupedTasksList(controller);
+    });
   }
 
   Widget getGroupedTasksList(TasksListController controller) {

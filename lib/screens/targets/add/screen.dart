@@ -19,6 +19,7 @@ class TargetAddScreen extends GetView<TargetAddController> {
         }
 
         return SafeArea(
+          bottom: false,
           child: Scaffold(
             resizeToAvoidBottomInset: true,
             appBar: AppBar(

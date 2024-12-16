@@ -10,6 +10,7 @@ import '../../app_routes.dart';
 import '../../helpers.dart';
 import '../../widgets/list_section.dart';
 import '../../widgets/list_section_tile.dart';
+import '../../widgets/week_day_picker.dart';
 import 'controller.dart';
 
 class SettingsScreen extends GetView<SettingsController> {
@@ -154,10 +155,22 @@ class SettingsScreen extends GetView<SettingsController> {
                       title: 'Notifications'.tr,
                       children: [
                         ListSectionTile(
+                          title: 'Default days for notifications'.tr,
+                          leading: const Icon(Iconsax.calendar_tick_outline),
+                          bottom: WeekDayPicker(
+                            initialSelection: controller.account.value
+                                ?.accountSettings.defaultNotificationsWeekDays,
+                            onChanged: (selectedDays) {
+                              controller
+                                  .setDefaultNotificationWeekDays(selectedDays);
+                            },
+                          ),
+                        ),
+                        ListSectionTile(
                           title: 'Default time for notifications'.tr,
                           subtitle: controller.account.value?.accountSettings
                               .defaultNotificationsTime,
-                          leading: const Icon(Icons.notifications_active),
+                          leading: const Icon(Iconsax.notification_outline),
                           onTap: () {
                             // Convert "2021-01-01 10:30 AM" to DateTime
                             DateFormat format = DateFormat("h:mm a");
@@ -209,20 +222,20 @@ class SettingsScreen extends GetView<SettingsController> {
                     ListSection(
                       title: 'Tasks'.tr,
                       children: [
-                        ListSectionTile(
-                          title: 'Max hours per day for tasks'.tr,
-                          subtitle:
-                              "${controller.account.value?.accountSettings.hoursPerDayForTasks.toString()} hours per day",
-                          leading: const Icon(Iconsax.timer_1_outline),
-                          onTap: () {
-                            var hoursPerDay = controller.account.value!
-                                .accountSettings.hoursPerDayForTasks;
-                            _showMaxTasksHoursPicker(
-                              context,
-                              hoursPerDay,
-                            );
-                          },
-                        ),
+                        // ListSectionTile(
+                        //   title: 'Max hours per day for tasks'.tr,
+                        //   subtitle:
+                        //       "${controller.account.value?.accountSettings.hoursPerDayForTasks.toString()} hours per day",
+                        //   leading: const Icon(Iconsax.timer_1_outline),
+                        //   onTap: () {
+                        //     var hoursPerDay = controller.account.value!
+                        //         .accountSettings.hoursPerDayForTasks;
+                        //     _showMaxTasksHoursPicker(
+                        //       context,
+                        //       hoursPerDay,
+                        //     );
+                        //   },
+                        // ),
                         ListSectionTile(
                           title: 'Hide completed tasks'.tr,
                           subtitle: 'Completed tasks will be hidden',

@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import '../helpers.dart';
 import '../models/target.dart';
 import 'color_checkbox.dart';
-import 'goal_deadline_progress.dart';
 import 'list_section.dart';
 import 'list_section_tile.dart';
 
@@ -12,14 +11,12 @@ class TargetWidget extends StatelessWidget {
   final Target target;
   final Function()? onTap;
   final double completedPercent;
-  final DeadlineProgress? progress;
 
   const TargetWidget(
     this.target, {
     super.key,
     this.onTap,
     this.completedPercent = 0.0,
-    this.progress,
   });
 
   @override
@@ -41,11 +38,6 @@ class TargetWidget extends StatelessWidget {
           title: target.title,
           subtitle: "$percent% done",
         ),
-        if (progress != null)
-          DeadlineProgressBar(
-            progress: progress!,
-            height: 3,
-          ),
       ],
     );
   }
