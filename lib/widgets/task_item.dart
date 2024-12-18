@@ -11,6 +11,7 @@ class TaskItem extends StatelessWidget {
   final Function(bool) onTaskStatusChanged;
   final bool isPlanned;
   final bool isCompleted;
+  final bool isNeedAttention;
   final bool isAwaited;
   final double progress;
   final Function() toggleFn;
@@ -23,6 +24,7 @@ class TaskItem extends StatelessWidget {
     required this.onTaskStatusChanged,
     required this.isPlanned,
     required this.isCompleted,
+    required this.isNeedAttention,
     required this.toggleFn,
     this.onTap,
     this.progress = 0.0,
@@ -39,8 +41,12 @@ class TaskItem extends StatelessWidget {
         color: generateColorFromText(task.targetId ?? "none"),
         checked: isPlanned,
         onChanged: toggleFn,
-        checkIcon: isAwaited ? Icons.check : Iconsax.timer_outline,
-        variant: isCompleted
+        checkIcon: isNeedAttention
+            ? Iconsax.info_circle_outline
+            : isAwaited
+                ? Icons.check
+                : Iconsax.timer_outline,
+        variant: isCompleted || isNeedAttention
             ? ColorCheckboxVariant.check
             : ColorCheckboxVariant.color,
       ),
@@ -71,6 +77,13 @@ class TaskItem extends StatelessWidget {
                 task.repeats,
                 style: const TextStyle(fontSize: 10),
               ),
+              if (isNeedAttention) ...[
+                const Text('•', style: TextStyle(fontSize: 10)),
+                Text(
+                  'Task overdue',
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ]
             ],
           ),
         ],

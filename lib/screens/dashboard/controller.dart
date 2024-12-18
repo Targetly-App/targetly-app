@@ -44,37 +44,41 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<void> refreshData() async {
-    targets.value = await _targetsService.getTargets();
-    var tasksStatuses = [TaskStatus.planned.name, TaskStatus.completed.name];
-    List<Task> tasks = await _tasksService.getTasks(statuses: tasksStatuses);
+    try {
+      targets.value = await _targetsService.getTargets();
+      var tasksStatuses = [TaskStatus.planned.name, TaskStatus.completed.name];
+      List<Task> tasks = await _tasksService.getTasks(statuses: tasksStatuses);
 
-    // Update notifications
-    for (var task in tasks) {
-      _localNotificationService.updateTaskNotification(task);
+      // Update notifications
+      for (var task in tasks) {
+        _localNotificationService.updateTaskNotification(task);
+      }
+
+      // Filter tasks by settings
+      tasks = tasks.where((task) {
+        var [isCompleted, timeCounterPercent, userNotified] =
+            _tasksService.getTaskCompletions(task);
+        if (account.settings['hideAwaitingTasks'] == true &&
+            isCompleted == true &&
+            timeCounterPercent > 0 &&
+            task.currentIteration < task.iterations &&
+            task.completedAt != null) {
+          return false;
+        }
+
+        if (account.settings['hideCompletedTasks'] == true &&
+            task.status == TaskStatus.completed.name) {
+          return false;
+        }
+        return true;
+      }).toList();
+
+      plannedTasks.value = tasks;
+
+      updateTasks(tasks);
+    } catch (e) {
+      print(e);
     }
-
-    // Filter tasks by settings
-    tasks = tasks.where((task) {
-      var [isCompleted, timeCounterPercent] =
-          _tasksService.getTaskCompletions(task);
-      if (account.settings['hideAwaitingTasks'] == true &&
-          isCompleted == true &&
-          timeCounterPercent > 0 &&
-          task.currentIteration < task.iterations &&
-          task.completedAt != null) {
-        return false;
-      }
-
-      if (account.settings['hideCompletedTasks'] == true &&
-          task.status == TaskStatus.completed.name) {
-        return false;
-      }
-      return true;
-    }).toList();
-
-    plannedTasks.value = tasks;
-
-    updateTasks(tasks);
   }
 
   void updateTasks(List<Task> tasks) {

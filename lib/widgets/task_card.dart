@@ -8,6 +8,7 @@ class TaskCardWidget extends StatelessWidget {
   final Task task;
   final bool isPlanned;
   final bool isCompleted;
+  final bool isNeedAttention;
   final double progress;
   final Function()? onTap;
   final Function()? toggleFn;
@@ -17,6 +18,7 @@ class TaskCardWidget extends StatelessWidget {
       this.onTap,
       this.isPlanned = false,
       this.isCompleted = false,
+      this.isNeedAttention = false,
       this.progress = 0.0,
       required this.toggleFn});
 
@@ -32,6 +34,7 @@ class TaskCardWidget extends StatelessWidget {
       isPlanned: [TaskStatus.planned.value, TaskStatus.completed.value]
           .contains(task.status),
       isCompleted: isCompleted,
+      isNeedAttention: isNeedAttention,
       isAwaited: isAchieved,
       onTaskStatusChanged: (bool value) {
         toggleFn!();

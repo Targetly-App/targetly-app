@@ -56,9 +56,9 @@ class LocalNotificationService extends GetxService {
     );
   }
 
-  DateTime calculateNextNotificationDate(Task task) {
+  DateTime? calculateNextNotificationDate(Task task) {
     if (task.status != TaskStatus.planned.value || task.plannedAt == null) {
-      throw Exception('Task must be planned with plannedAt date');
+      return null;
     }
 
     final now = DateTime.now();
@@ -70,6 +70,10 @@ class LocalNotificationService extends GetxService {
 
     // If notification time is in the past, find next occurrence
     if (baseNotification.isBefore(now)) {
+      // For "once" tasks, return null if the time is in the past
+      if (task.repeats == "once") {
+        return null;
+      }
       baseNotification =
           _findNextOccurrence(baseNotification, now, task.repeats);
     }
@@ -81,6 +85,11 @@ class LocalNotificationService extends GetxService {
         task.reminderWeekdays ??
             account.accountSettings.defaultNotificationsWeekDays,
       );
+    }
+
+    // Final check to ensure the notification is in the future
+    if (baseNotification.isBefore(now)) {
+      return null;
     }
 
     return baseNotification;
@@ -140,16 +149,33 @@ class LocalNotificationService extends GetxService {
         return baseDate.add(Duration(hours: hoursToAdd));
 
       case "daily":
-        final daysToAdd = now.difference(baseDate).inDays + 1;
+        // Calculate days to add, ensuring we move to the next day if we're past notification time
+        final daysToAdd = now.difference(baseDate).inDays +
+            (now.hour > baseDate.hour ||
+                    (now.hour == baseDate.hour && now.minute >= baseDate.minute)
+                ? 1
+                : 0);
         return baseDate.add(Duration(days: daysToAdd));
 
       case "weekly":
-        final weeksToAdd = (now.difference(baseDate).inDays / 7).ceil();
-        return baseDate.add(Duration(days: weeksToAdd * 7));
+        var weeksToAdd = (now.difference(baseDate).inDays / 7).ceil();
+        var nextDate = baseDate.add(Duration(days: weeksToAdd * 7));
+
+        // If we're past the notification time on the calculated day, add one more week
+        if (nextDate.day == now.day &&
+            (now.hour > nextDate.hour ||
+                (now.hour == nextDate.hour && now.minute >= nextDate.minute))) {
+          nextDate = nextDate.add(Duration(days: 7));
+        }
+        return nextDate;
 
       case "monthly":
         var nextDate = baseDate;
-        while (nextDate.isBefore(now)) {
+        while (nextDate.isBefore(now) ||
+            (nextDate.day == now.day &&
+                (now.hour > nextDate.hour ||
+                    (now.hour == nextDate.hour &&
+                        now.minute >= nextDate.minute)))) {
           final nextMonth = nextDate.month + 1;
           final nextYear = nextDate.year + (nextMonth > 12 ? 1 : 0);
           nextDate = DateTime(
@@ -165,7 +191,11 @@ class LocalNotificationService extends GetxService {
 
       case "yearly":
         var nextDate = baseDate;
-        while (nextDate.isBefore(now)) {
+        while (nextDate.isBefore(now) ||
+            (nextDate.day == now.day &&
+                (now.hour > nextDate.hour ||
+                    (now.hour == nextDate.hour &&
+                        now.minute >= nextDate.minute)))) {
           nextDate = DateTime(
             nextDate.year + 1,
             nextDate.month,
@@ -211,22 +241,45 @@ class LocalNotificationService extends GetxService {
   Future<void> updateTaskNotification(Task task) async {
     final notificationId = getEnhanced32BitFromFirestoreId(task.id!);
 
+    // First, cancel any existing notification
+    await _notifications.cancel(notificationId);
+
     final bool isNeedNotify = task.currentIteration < task.iterations &&
         task.status == TaskStatus.planned.value &&
         task.plannedAt != null;
 
-    await _notifications.cancel(notificationId);
-
+    // If notification is not needed, we've already cancelled it above
     if (!isNeedNotify) return;
 
     try {
+      // Calculate next notification date
       final nextNotificationDate = calculateNextNotificationDate(task);
+
+      // If nextNotificationDate is null, it means the notification time is in the past
+      // Just return without scheduling a new notification
+      if (nextNotificationDate == null) {
+        // Skipping notification for task because the calculated time is in the past
+        return;
+      }
+
+      // Convert to TZDateTime
+      final notificationTzDateTime = tz.TZDateTime.from(
+        nextNotificationDate,
+        tz.local,
+      );
+
+      // Double check that the TZ conversion didn't push us into the past
+      if (notificationTzDateTime.isBefore(tz.TZDateTime.now(tz.local))) {
+        print(
+            'Skipping notification for task ${task.title} as the TZ converted time is in the past');
+        return;
+      }
 
       await _notifications.zonedSchedule(
         notificationId,
         task.title,
         task.description ?? '',
-        tz.TZDateTime.from(nextNotificationDate, tz.local),
+        notificationTzDateTime,
         NotificationDetails(
           iOS: DarwinNotificationDetails(
             presentAlert: true,
@@ -241,6 +294,7 @@ class LocalNotificationService extends GetxService {
       );
     } catch (e) {
       print('Error scheduling notification: $e');
+      print('Task: ${task.title}');
     }
   }
 

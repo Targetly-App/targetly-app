@@ -24,7 +24,7 @@ class SimpleListLayer extends GetWidget<PlanningStackController> {
           ListSection(
             title: groupName,
             children: tasks.map((Task task) {
-              var [isCompleted, timeCounterPercent] =
+              var [isCompleted, timeCounterPercent, userNotified] =
                   controller.getTaskCompletions(task);
               return TaskCardWidget(
                 isPlanned: true,

@@ -138,6 +138,13 @@ class TasksService extends GetxService {
   List getTaskCompletions(Task task) {
     bool isCompleted = false;
     double timeCounterPercent = 0.0;
+    bool userNotified = false;
+
+    DateTime? nextNotificationTime =
+        _localNotificationService.calculateNextNotificationDate(task);
+    if (nextNotificationTime == null) {
+      userNotified = true;
+    }
 
     if (task.status == 'completed') {
       isCompleted = true;
@@ -146,10 +153,10 @@ class TasksService extends GetxService {
       // Getting next notification time
       int secondsToNextIteration = 0;
       if (task.status == TaskStatus.planned.value && task.plannedAt != null) {
-        DateTime nextNotificationTime =
-            _localNotificationService.calculateNextNotificationDate(task);
-        secondsToNextIteration =
-            nextNotificationTime.difference(DateTime.now()).inSeconds;
+        if (nextNotificationTime != null) {
+          secondsToNextIteration =
+              nextNotificationTime.difference(DateTime.now()).inSeconds;
+        }
       }
 
       if (secondsToNextIteration == 0) {
@@ -166,7 +173,7 @@ class TasksService extends GetxService {
       }
     }
 
-    return [isCompleted, timeCounterPercent];
+    return [isCompleted, timeCounterPercent, userNotified];
   }
 
   Future<Task?> getById(String id) async {

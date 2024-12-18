@@ -49,13 +49,14 @@ class TasksListWidget extends GetWidget<TasksListController> {
           children: [
             for (var task in tasks)
               Builder(builder: (context) {
-                var [isCompleted, timeCounterPercent] =
+                var [isCompleted, timeCounterPercent, userNotified] =
                     controller.getTaskCompletions(task);
                 return TaskCardWidget(
                   task,
                   isPlanned: true,
                   isCompleted: isCompleted,
                   progress: timeCounterPercent,
+                  isNeedAttention: userNotified,
                   toggleFn: () async {
                     if (isCompleted) {
                       // Need tell user that iteration will be reduced

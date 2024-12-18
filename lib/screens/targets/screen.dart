@@ -98,7 +98,6 @@ class TargetsScreen extends GetView<TargetsController> {
                   ),
                   SliverToBoxAdapter(
                     child: AnimatedStackedCards(
-                      spacing: 15,
                       maxVisibleCards: 3,
                       scaleFactor: 0.03,
                       isExpanded: controller.isCompletedTargetsExpanded.value,
@@ -106,8 +105,7 @@ class TargetsScreen extends GetView<TargetsController> {
                       onTap: () {
                         controller.isCompletedTargetsExpanded.value = true;
                       },
-                      children:
-                          controller.completedTargets.take(3).map((target) {
+                      children: controller.completedTargets.map((target) {
                         return TargetWidget(
                           target,
                           completedPercent: 1,
