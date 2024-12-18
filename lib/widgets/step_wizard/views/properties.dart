@@ -9,6 +9,17 @@ import '../../week_day_picker.dart';
 
 enum StepWizardQuestionType { switcher, select, date, time, weekdays }
 
+// Define dependency condition
+class DependencyCondition {
+  final String propertyName;
+  final dynamic visibleWhen;
+
+  const DependencyCondition({
+    required this.propertyName,
+    required this.visibleWhen,
+  });
+}
+
 class StepWizardProperty {
   final String name;
   final Icon? icon;
@@ -16,9 +27,8 @@ class StepWizardProperty {
   final List<dynamic> values;
   final dynamic selectedValue;
   final String? subTitle;
-  final String? dependsOn; // Name of the switcher property this depends on
-  final bool
-      visibleWhen; // Value of the switcher that makes this property visible
+  final List<DependencyCondition> dependencies;
+  final bool matchAll;
 
   StepWizardProperty({
     required this.name,
@@ -27,8 +37,8 @@ class StepWizardProperty {
     this.values = const [],
     this.selectedValue,
     this.subTitle,
-    this.dependsOn,
-    this.visibleWhen = true,
+    this.dependencies = const [],
+    this.matchAll = true,
   });
 }
 
@@ -61,25 +71,35 @@ class _StepWizardPropertiesViewState extends State<StepWizardPropertiesView> {
   }
 
   bool isPropertyVisible(StepWizardProperty property) {
-    // If property doesn't depend on any switcher, it's always visible
-    if (property.dependsOn == null) return true;
+    // If property has no dependencies, it's always visible
+    if (property.dependencies.isEmpty) return true;
 
-    // Find the switcher property this depends on
-    final switcherProperty = properties.firstWhere(
-      (p) =>
-          p.name == property.dependsOn &&
-          p.type == StepWizardQuestionType.switcher,
-      orElse: () =>
-          property, // Return the original property if dependency not found
-    );
+    List<bool> conditionResults = property.dependencies.map((dependency) {
+      // Find the dependent property by name (now works with any type)
+      final dependentProperty = properties.firstWhere(
+        (p) => p.name == dependency.propertyName,
+        orElse: () => property,
+      );
 
-    // Show the property if the switcher value matches visibleWhen
-    return switcherProperty.selectedValue == property.visibleWhen;
+      // Compare the dependent property's selected value with the required value
+      // If visibleWhen is function, call it
+      if (dependency.visibleWhen is Function) {
+        return (dependency.visibleWhen
+            as Function)(dependentProperty.selectedValue) as bool;
+      }
+
+      return dependentProperty.selectedValue == dependency.visibleWhen;
+    }).toList();
+
+    // If matchAll is true, all conditions must be met (AND)
+    // If matchAll is false, any condition can be met (OR)
+    return property.matchAll
+        ? conditionResults.every((result) => result)
+        : conditionResults.any((result) => result);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Filter visible properties
     final visibleProperties = properties.where(isPropertyVisible).toList();
 
     return ListSection(
@@ -101,8 +121,8 @@ class _StepWizardPropertiesViewState extends State<StepWizardPropertiesView> {
                             type: p.type,
                             values: p.values,
                             selectedValue: newValue,
-                            dependsOn: p.dependsOn,
-                            visibleWhen: p.visibleWhen,
+                            dependencies: p.dependencies,
+                            matchAll: p.matchAll,
                             subTitle: p.subTitle,
                           );
                         }
@@ -117,15 +137,15 @@ class _StepWizardPropertiesViewState extends State<StepWizardPropertiesView> {
                   onChanged: (List<int> selectedDays) {
                     setState(() {
                       properties = properties.map((p) {
-                        if (p.type == StepWizardQuestionType.weekdays) {
+                        if (p.name == property.name) {
                           return StepWizardProperty(
                             name: p.name,
                             icon: p.icon,
                             type: p.type,
                             values: p.values,
                             selectedValue: selectedDays,
-                            dependsOn: p.dependsOn,
-                            visibleWhen: p.visibleWhen,
+                            dependencies: p.dependencies,
+                            matchAll: p.matchAll,
                             subTitle: p.subTitle,
                           );
                         }
@@ -195,17 +215,21 @@ class _StepWizardPropertiesViewState extends State<StepWizardPropertiesView> {
                 onSelectedItemChanged: (int index) {
                   var value = values[index];
                   setState(() {
-                    properties = properties
-                        .map((property) => property.name == propertyName
-                            ? StepWizardProperty(
-                                name: propertyName,
-                                icon: property.icon,
-                                type: property.type,
-                                values: property.values,
-                                selectedValue: value,
-                              )
-                            : property)
-                        .toList();
+                    properties = properties.map((p) {
+                      if (p.name == propertyName) {
+                        return StepWizardProperty(
+                          name: propertyName,
+                          icon: p.icon,
+                          type: p.type,
+                          values: p.values,
+                          selectedValue: value,
+                          dependencies: p.dependencies,
+                          matchAll: p.matchAll,
+                          subTitle: p.subTitle,
+                        );
+                      }
+                      return p;
+                    }).toList();
                   });
                   onPropertySelected?.call(propertyName, value);
                 },
@@ -226,9 +250,9 @@ class _StepWizardPropertiesViewState extends State<StepWizardPropertiesView> {
   void _showTimePicker(BuildContext context, String propertyName) {
     // Convert "2021-01-01 10:30 AM" to DateTime
     DateFormat format = DateFormat("h:mm a");
-    String? propertyTime = properties
-        .firstWhere((property) => property.name == propertyName)
-        .selectedValue;
+    final property =
+        properties.firstWhere((property) => property.name == propertyName);
+    String? propertyTime = property.selectedValue;
     DateTime currentValue = format.parse(propertyTime ?? '8:00 AM');
     var selectedTime = currentValue;
     showCupertinoModalPopup(
@@ -256,20 +280,23 @@ class _StepWizardPropertiesViewState extends State<StepWizardPropertiesView> {
                 // Getting date string as 'HH a'
                 String time = getFormattedDate(selectedTime, format: 'h:mm a');
                 setState(() {
-                  properties = properties
-                      .map((property) => property.name == propertyName
-                          ? StepWizardProperty(
-                              name: propertyName,
-                              icon: property.icon,
-                              type: property.type,
-                              values: property.values,
-                              selectedValue: time,
-                            )
-                          : property)
-                      .toList();
+                  properties = properties.map((p) {
+                    if (p.name == propertyName) {
+                      return StepWizardProperty(
+                        name: propertyName,
+                        icon: p.icon,
+                        type: p.type,
+                        values: p.values,
+                        selectedValue: time,
+                        dependencies: p.dependencies,
+                        matchAll: p.matchAll,
+                        subTitle: p.subTitle,
+                      );
+                    }
+                    return p;
+                  }).toList();
                 });
                 onPropertySelected?.call(propertyName, time);
-
                 Navigator.of(context).pop();
               },
             ),
@@ -280,9 +307,9 @@ class _StepWizardPropertiesViewState extends State<StepWizardPropertiesView> {
   }
 
   void _showDatePicker(BuildContext context, String propertyName) {
-    String? initialDate = properties
-        .firstWhere((property) => property.name == propertyName)
-        .selectedValue;
+    final property =
+        properties.firstWhere((property) => property.name == propertyName);
+    String? initialDate = property.selectedValue;
     DateTime initialDateTime;
     DateTime minimumDate = DateTime.now();
     if (initialDate == null) {
@@ -311,17 +338,21 @@ class _StepWizardPropertiesViewState extends State<StepWizardPropertiesView> {
                   setState(() {
                     // Format date to better for user understanding
                     String formattedDate = getFormattedDate(value);
-                    properties = properties
-                        .map((property) => property.name == propertyName
-                            ? StepWizardProperty(
-                                name: propertyName,
-                                icon: property.icon,
-                                type: property.type,
-                                values: property.values,
-                                selectedValue: formattedDate,
-                              )
-                            : property)
-                        .toList();
+                    properties = properties.map((p) {
+                      if (p.name == propertyName) {
+                        return StepWizardProperty(
+                          name: propertyName,
+                          icon: p.icon,
+                          type: p.type,
+                          values: p.values,
+                          selectedValue: formattedDate,
+                          dependencies: p.dependencies,
+                          matchAll: p.matchAll,
+                          subTitle: p.subTitle,
+                        );
+                      }
+                      return p;
+                    }).toList();
                   });
                   onPropertySelected?.call(propertyName, value);
                 },

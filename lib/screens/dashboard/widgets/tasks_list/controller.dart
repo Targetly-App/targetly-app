@@ -21,6 +21,7 @@ class TasksListController extends GetxController {
       _dashboardController.groupedTasks;
   RxList<Target> get targets => _dashboardController.targets;
   RxList<Task> get tasks => _dashboardController.plannedTasks;
+  RxString get searchQuery => _dashboardController.searchQuery;
 
   @override
   void onInit() async {

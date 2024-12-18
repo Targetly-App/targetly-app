@@ -14,4 +14,19 @@ class TaskStackViewController extends GetxController {
   }
 
   TasksService tasksService = Get.find();
+
+  void markAsCompleted() async {
+    await tasksService.setStatus(task, 'completed');
+    Get.back();
+  }
+
+  void markAsIncomplete() async {
+    await tasksService.setStatus(task, 'todo');
+    Get.back();
+  }
+
+  void markAsPlanned() async {
+    await tasksService.setStatus(task, 'planned');
+    Get.back();
+  }
 }

@@ -23,13 +23,13 @@ class TaskCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isAchieved = isCompleted &&
-        task.status == TaskStatus.completed.name &&
+        task.status == TaskStatus.completed.value &&
         task.currentIteration == task.iterations;
     return TaskItem(
       onTap: onTap,
       task: task,
       progress: isAchieved ? 1.0 : progress,
-      isPlanned: [TaskStatus.planned.name, TaskStatus.completed.name]
+      isPlanned: [TaskStatus.planned.value, TaskStatus.completed.value]
           .contains(task.status),
       isCompleted: isCompleted,
       isAwaited: isAchieved,

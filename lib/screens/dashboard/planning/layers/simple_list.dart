@@ -32,15 +32,16 @@ class SimpleListLayer extends GetWidget<PlanningStackController> {
                 progress: timeCounterPercent,
                 task,
                 toggleFn: () {
-                  if (task.currentIteration > 0) {
-                    // If we moving task to todo, we need alert that all progress will be lost
+                  if (task.status == TaskStatus.planned.value &&
+                      task.completedAt != null &&
+                      task.currentIteration > 0) {
                     showDialog(
                       context: context,
                       builder: (context) {
                         return AlertDialog(
                           title: Text('Warning'.tr),
                           content: Text(
-                              'Are you sure you want to move this task to todo? All progress will be lost'
+                              'Task in progress. Are you sure you want to move it to todo?'
                                   .tr),
                           actions: [
                             TextButton(

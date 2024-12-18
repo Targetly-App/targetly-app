@@ -113,6 +113,7 @@ class Task {
   final int effort;
   final String duration;
   final String repeats;
+  final DateTime notifyAt;
   final List<int>? reminderWeekdays;
   final String? reminderTime;
   final int iterations;
@@ -138,6 +139,7 @@ class Task {
     this.effort = 0,
     required this.duration,
     required this.repeats,
+    required this.notifyAt,
     this.reminderWeekdays = const [],
     this.reminderTime,
     required this.iterations,
@@ -164,6 +166,9 @@ class Task {
       effort: json['effort'] ?? 0,
       duration: json['duration'] ?? '',
       repeats: json['repeats'] ?? '',
+      notifyAt: json['notifyAt'] != null
+          ? DateTime.parse(json['notifyAt'])
+          : DateTime.now(),
       reminderWeekdays: json[
           'reminderWeekdays'], // if null, then we will use default settings
       reminderTime: json['reminderTime'],
@@ -202,6 +207,9 @@ class Task {
       effort: data['effort'] ?? 0,
       duration: data['duration'] ?? '',
       repeats: data['repeats'] ?? '',
+      notifyAt: data['notifyAt'] != null
+          ? (data['notifyAt'] as Timestamp).toDate()
+          : DateTime.now(),
       reminderWeekdays: data['reminderWeekdays'] != null
           ? List<int>.from(data['reminderWeekdays'])
           : null,
@@ -242,6 +250,7 @@ class Task {
       'effort': effort,
       'duration': duration,
       'repeats': repeats,
+      'notifyAt': Timestamp.fromDate(notifyAt),
       'reminderWeekdays': reminderWeekdays,
       'reminderTime': reminderTime,
       'iterations': iterations,
@@ -269,6 +278,7 @@ class Task {
     int? effort,
     String? duration,
     String? repeats,
+    DateTime? notifyAt,
     List<int>? reminderWeekdays,
     String? reminderTime,
     int? iterations,
@@ -290,6 +300,7 @@ class Task {
       effort: effort ?? this.effort,
       duration: duration ?? this.duration,
       repeats: repeats ?? this.repeats,
+      notifyAt: notifyAt ?? this.notifyAt,
       reminderWeekdays: reminderWeekdays ?? this.reminderWeekdays,
       reminderTime: reminderTime ?? this.reminderTime,
       iterations: iterations ?? this.iterations,
@@ -327,6 +338,7 @@ class Task {
       currentIteration: currentIteration,
       step: step,
       dependencies: dependencies,
+      notifyAt: notifyAt,
       reminderWeekdays: reminderWeekdays == true ? null : this.reminderWeekdays,
       reminderTime: reminderTime == true ? null : this.reminderTime,
       targetId: targetId == true ? null : this.targetId,

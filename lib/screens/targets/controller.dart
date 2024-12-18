@@ -19,45 +19,37 @@ class TargetsController extends GetxController {
 
   RxList<Target> completedTargets = <Target>[].obs;
   RxList<Target> targets = <Target>[].obs;
-  late StreamSubscription<List<Target>> _targetsSubscription;
 
   RxList<Task> tasks = <Task>[].obs;
-  late StreamSubscription<List<Task>> _tasksSubscription;
 
   @override
   void onInit() async {
-    _tasksSubscription =
-        _tasksService.subscribe(statuses: []).listen((tasksList) {
-      tasks.value = tasksList;
-
-      _targetsSubscription = _targetsService.subscribe().listen((targetsList) {
-        completedTargets.value = targetsList.where((target) {
-          var targetTasks =
-              tasks.where((task) => task.targetId == target.id).toList();
-          var completedPercent =
-              _targetsService.getCompletedPercentage(target, targetTasks);
-          return completedPercent >= 1;
-        }).toList();
-        targets.value = targetsList.where((target) {
-          var targetTasks =
-              tasks.where((task) => task.targetId == target.id).toList();
-          var completedPercent =
-              _targetsService.getCompletedPercentage(target, targetTasks);
-          return completedPercent < 1;
-        }).toList();
-        isLoading.value = false;
-      });
-    });
-
+    isLoading.value = true;
+    await refreshData();
+    isLoading.value = false;
     isOnline = _appService.isOnline();
     super.onInit();
   }
 
-  @override
-  void onClose() {
-    _targetsSubscription.cancel();
-    _tasksSubscription.cancel();
-    super.onClose();
+  Future<void> refreshData() async {
+    List<Target> targets = await _targetsService.getTargets();
+    tasks.value = await _tasksService.getTasks();
+
+    completedTargets.value = targets.where((target) {
+      var targetTasks =
+          tasks.where((task) => task.targetId == target.id).toList();
+      var completedPercent =
+          _targetsService.getCompletedPercentage(target, targetTasks);
+      return completedPercent >= 1;
+    }).toList();
+
+    this.targets.value = targets.where((target) {
+      var targetTasks =
+          tasks.where((task) => task.targetId == target.id).toList();
+      var completedPercent =
+          _targetsService.getCompletedPercentage(target, targetTasks);
+      return completedPercent < 1;
+    }).toList();
   }
 
   Future<void> removeAllCompletedTargets() async {

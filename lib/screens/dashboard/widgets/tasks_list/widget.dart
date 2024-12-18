@@ -37,7 +37,11 @@ class TasksListWidget extends GetWidget<TasksListController> {
       ..sort((a, b) => a.compareTo(b));
     return Column(
       children: sortedTargets.map<Widget>((title) {
-        List<Task> tasks = controller.groupedTasks[title]!;
+        List<Task> tasks = controller.groupedTasks[title]!
+            .where((Task task) => task.title
+                .toLowerCase()
+                .contains(controller.searchQuery.value.toLowerCase()))
+            .toList();
         return ListSection(
           insetGrouped: true,
           margin: margin,

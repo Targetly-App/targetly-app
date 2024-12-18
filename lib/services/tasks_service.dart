@@ -8,6 +8,7 @@ import 'package:targetly/services/app_service.dart';
 import 'package:targetly/services/local_notification_service.dart';
 
 import '../models/account.dart';
+import '../models/target.dart';
 
 class TasksService extends GetxService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -68,7 +69,8 @@ class TasksService extends GetxService {
     }
   }
 
-  Future<Task> setStatus(Task task, String status) async {
+  Future<Task> setStatus(Task task, String status,
+      {WriteBatch? batch, bool resetIterations = true}) async {
     try {
       Task updatedTask = task;
 
@@ -111,7 +113,7 @@ class TasksService extends GetxService {
           updatedTask = task
               .copyWith(
                 status: 'todo',
-                currentIteration: 0,
+                currentIteration: resetIterations ? 0 : task.currentIteration,
               )
               .copyWithNull(
                 plannedAt: true,
@@ -120,7 +122,11 @@ class TasksService extends GetxService {
           break;
       }
 
-      await _tasksRef.doc(task.id).update(updatedTask.toFirestore());
+      if (batch != null) {
+        batch.update(_tasksRef.doc(task.id), updatedTask.toFirestore());
+      } else {
+        await _tasksRef.doc(task.id).update(updatedTask.toFirestore());
+      }
 
       return updatedTask;
     } catch (e) {
@@ -138,10 +144,14 @@ class TasksService extends GetxService {
       timeCounterPercent = 1.0;
     } else if (task.completedAt != null) {
       // Getting next notification time
-      DateTime nextNotificationTime =
-          _localNotificationService.calculateNextNotificationDate(task);
-      int secondsToNextIteration =
-          nextNotificationTime.difference(DateTime.now()).inSeconds;
+      int secondsToNextIteration = 0;
+      if (task.status == TaskStatus.planned.value && task.plannedAt != null) {
+        DateTime nextNotificationTime =
+            _localNotificationService.calculateNextNotificationDate(task);
+        secondsToNextIteration =
+            nextNotificationTime.difference(DateTime.now()).inSeconds;
+      }
+
       if (secondsToNextIteration == 0) {
         isCompleted = true;
         timeCounterPercent = 1.0;
@@ -177,20 +187,6 @@ class TasksService extends GetxService {
 
   Future<void> delete(String id) async {
     await _tasksRef.doc(id).delete();
-  }
-
-  int _getRepeatsInSeconds(String repeat) {
-    switch (repeat.toLowerCase()) {
-      case 'daily':
-        return 24 * 60 * 60;
-      case 'weekly':
-        return 7 * 24 * 60 * 60;
-      case 'monthly':
-        return 30 * 24 * 60 * 60;
-      case 'once':
-      default:
-        return 0;
-    }
   }
 
   Future<void> deleteByTargetId(String targetId) async {
@@ -233,6 +229,25 @@ class TasksService extends GetxService {
     final batch = _firestore.batch();
     for (var task in tasks.docs) {
       batch.delete(task.reference);
+    }
+    await batch.commit();
+  }
+
+  Future<void> markAllAsCompletedByTarget(Target target) async {
+    final tasks = await getTasksByTargetId(target.id!);
+    final batch = _firestore.batch();
+    for (var task in tasks) {
+      Task updatedTask = task.copyWith(currentIteration: task.iterations - 1);
+      await setStatus(updatedTask, 'completed', batch: batch);
+    }
+    await batch.commit();
+  }
+
+  Future<void> resetAllTasksStatusByTarget(Target target) async {
+    final tasks = await getTasksByTargetId(target.id!);
+    final batch = _firestore.batch();
+    for (var task in tasks) {
+      await setStatus(task, 'todo', batch: batch);
     }
     await batch.commit();
   }

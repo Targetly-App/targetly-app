@@ -59,11 +59,13 @@ class TaskItem extends StatelessWidget {
                 task.duration,
                 style: const TextStyle(fontSize: 10),
               ),
-              const Text('•', style: TextStyle(fontSize: 10)),
-              Text(
-                '${task.currentIteration}/${task.iterations}',
-                style: const TextStyle(fontSize: 10),
-              ),
+              if (task.repeats != 'once') ...[
+                const Text('•', style: TextStyle(fontSize: 10)),
+                Text(
+                  '${task.currentIteration}/${task.iterations}',
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ],
               const Text('•', style: TextStyle(fontSize: 10)),
               Text(
                 task.repeats,

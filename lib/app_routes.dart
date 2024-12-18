@@ -64,11 +64,11 @@ final tutorialSteps = [
     description: 'Chat about your targets and tasks to gain instant insights',
     imagePath: 'assets/tutorial/target-chat.png',
   ),
-  TutorialStep(
-    title: 'Smart planning',
-    description: 'Enhance planning with Cartesian quadrants or Pareto analysis',
-    imagePath: 'assets/tutorial/planning-decart.png',
-  ),
+  // TutorialStep(
+  //   title: 'Smart planning',
+  //   description: 'Enhance planning with Cartesian quadrants or Pareto analysis',
+  //   imagePath: 'assets/tutorial/planning-decart.png',
+  // ),
 ];
 
 List<GetPage> appPages = [

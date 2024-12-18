@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:targetly/helpers.dart';
 import 'package:targetly/services/app_service.dart';
 
 import '../../../../../constants.dart';
@@ -29,6 +30,7 @@ class AddTaskController extends GetxController {
     "Use global settings".tr: true,
     "Weekdays".tr: null,
     "Time".tr: null,
+    "Start notification date".tr: DateTime.now(),
   };
 
   @override
@@ -94,6 +96,13 @@ class AddTaskController extends GetxController {
                     selectedValue: properties["Frequency".tr],
                   ),
                   StepWizardProperty(
+                    name: "Start notification date".tr,
+                    icon: const Icon(Iconsax.calendar_outline),
+                    type: StepWizardQuestionType.date,
+                    selectedValue: getFormattedDate(
+                        properties["Start notification date".tr]),
+                  ),
+                  StepWizardProperty(
                     name: "Use global settings".tr,
                     icon: Icon(Icons.settings),
                     type: StepWizardQuestionType.switcher,
@@ -105,16 +114,28 @@ class AddTaskController extends GetxController {
                     icon: Icon(Iconsax.calendar_2_outline),
                     type: StepWizardQuestionType.weekdays,
                     selectedValue: properties["Weekdays".tr],
-                    dependsOn: "Use global settings".tr,
-                    visibleWhen: false,
+                    dependencies: [
+                      DependencyCondition(
+                        propertyName: "Use global settings".tr,
+                        visibleWhen: false,
+                      ),
+                      DependencyCondition(
+                        propertyName: "Frequency".tr,
+                        visibleWhen: (value) => value != 'once',
+                      ),
+                    ],
                   ),
                   StepWizardProperty(
                     name: "Time".tr,
                     icon: Icon(Icons.notifications_active),
                     type: StepWizardQuestionType.time,
                     selectedValue: properties["Time".tr],
-                    dependsOn: "Use global settings".tr,
-                    visibleWhen: false,
+                    dependencies: [
+                      DependencyCondition(
+                        propertyName: "Use global settings".tr,
+                        visibleWhen: false,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -134,6 +155,7 @@ class AddTaskController extends GetxController {
         description: answers['description']!,
         duration: properties["Duration".tr],
         repeats: properties["Frequency".tr],
+        notifyAt: properties["Start notification date".tr],
         reminderWeekdays: useGlobalSettings ? null : properties["Weekdays".tr],
         reminderTime: useGlobalSettings ? null : properties["Time".tr],
         iterations: int.parse(properties["Iterations".tr]),

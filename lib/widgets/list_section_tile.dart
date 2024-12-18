@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 
 class ListSectionTile extends StatefulWidget {
-  final String title;
+  final String? title;
   final Widget? leading;
   final String? subtitle;
   final TextOverflow? subtitleOverflow;
   final Widget? bottom;
   final Widget? trailing;
+  final EdgeInsetsGeometry? padding;
   final Function()? onTap;
 
   const ListSectionTile(
       {super.key,
-      required this.title,
+      this.title,
       this.subtitle,
       this.subtitleOverflow,
       this.bottom,
       this.leading,
       this.trailing,
+      this.padding,
       this.onTap});
 
   @override
@@ -51,7 +53,8 @@ class _ListSectionTileState extends State<ListSectionTile> {
             }
           : null,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: widget.padding ??
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         color:
             isSelected ? const Color.fromARGB(72, 0, 0, 0) : Colors.transparent,
         child: Row(
@@ -71,11 +74,12 @@ class _ListSectionTileState extends State<ListSectionTile> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    widget.title,
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
+                  if (widget.title != null && widget.title!.isNotEmpty)
+                    Text(
+                      widget.title!,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
                   if (widget.subtitle != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
@@ -90,7 +94,7 @@ class _ListSectionTileState extends State<ListSectionTile> {
                 ],
               ),
             ),
-            if (widget.onTap != null)
+            if (widget.onTap != null && widget.trailing == null)
               const Padding(
                 padding: EdgeInsets.only(left: 8),
                 child: Icon(

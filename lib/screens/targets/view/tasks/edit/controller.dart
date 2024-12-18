@@ -4,6 +4,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:targetly/screens/dashboard/controller.dart';
 
 import '../../../../../constants.dart';
+import '../../../../../helpers.dart';
 import '../../../../../models/account.dart';
 import '../../../../../models/task.dart';
 import '../../../../../services/app_service.dart';
@@ -59,6 +60,8 @@ class TaskEditController extends GetxController {
       "Use global settings".tr: task.reminderWeekdays == null,
       "Weekdays".tr: weekdays,
       "Time".tr: time,
+      "Start notification date".tr:
+          task.notifyAt ?? task.createdAt ?? DateTime.now(),
     };
 
     wizardQuestions = [
@@ -86,18 +89,6 @@ class TaskEditController extends GetxController {
                   properties[propertyName] = value;
                 },
                 properties: [
-                  // StepWizardProperty(
-                  //   name: "Impact".tr,
-                  //   icon: const Icon(Iconsax.flash_1_outline),
-                  //   values: impactLevels,
-                  //   selectedValue: properties["Impact".tr],
-                  // ),
-                  // StepWizardProperty(
-                  //   name: "Effort".tr,
-                  //   icon: const Icon(Iconsax.weight_1_outline),
-                  //   values: effortLevels,
-                  //   selectedValue: properties["Effort".tr],
-                  // ),
                   StepWizardProperty(
                     name: "Iterations".tr,
                     icon: const Icon(Iconsax.rotate_right_outline),
@@ -125,6 +116,13 @@ class TaskEditController extends GetxController {
                     selectedValue: properties["Frequency".tr],
                   ),
                   StepWizardProperty(
+                    name: "Start notification date".tr,
+                    icon: const Icon(Iconsax.calendar_outline),
+                    type: StepWizardQuestionType.date,
+                    selectedValue: getFormattedDate(
+                        properties["Start notification date".tr] as DateTime),
+                  ),
+                  StepWizardProperty(
                     name: "Use global settings".tr,
                     icon: Icon(Icons.settings),
                     type: StepWizardQuestionType.switcher,
@@ -136,16 +134,28 @@ class TaskEditController extends GetxController {
                     icon: const Icon(Iconsax.calendar_2_outline),
                     type: StepWizardQuestionType.weekdays,
                     selectedValue: properties["Weekdays".tr],
-                    dependsOn: "Use global settings".tr,
-                    visibleWhen: false,
+                    dependencies: [
+                      DependencyCondition(
+                        propertyName: "Use global settings".tr,
+                        visibleWhen: false,
+                      ),
+                      DependencyCondition(
+                        propertyName: "Frequency".tr,
+                        visibleWhen: (value) => value != 'once',
+                      ),
+                    ],
                   ),
                   StepWizardProperty(
                     name: "Time".tr,
                     icon: Icon(Icons.notifications_active),
                     type: StepWizardQuestionType.time,
                     selectedValue: properties["Time".tr],
-                    dependsOn: "Use global settings".tr,
-                    visibleWhen: false,
+                    dependencies: [
+                      DependencyCondition(
+                        propertyName: "Use global settings".tr,
+                        visibleWhen: false,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -170,20 +180,17 @@ class TaskEditController extends GetxController {
     update();
 
     try {
-      // Before we change status to planned, we should remove notification
-      await _localNotificationService.updateTaskNotification(task);
-
       Task updatedTask = task.copyWith(
         title: answers['title']!.trim(),
         description: answers['description']!.trim(),
         // impact: impactLevels.indexOf(properties["Impact".tr]) + 1,
         // effort: effortLevels.indexOf(properties["Effort".tr]) + 1,
+        notifyAt: properties["Start notification date".tr],
         repeats: properties["Frequency".tr],
         reminderWeekdays: properties["Weekdays".tr],
         reminderTime: properties["Time".tr],
         iterations: int.parse(properties["Iterations".tr].toString()),
         duration: properties["Duration".tr],
-        status: TaskStatus.planned.name,
         completedAt: null,
       );
 
@@ -204,7 +211,7 @@ class TaskEditController extends GetxController {
       }
 
       await _tasksService.update(updatedTask);
-
+      await _localNotificationService.updateTaskNotification(updatedTask);
       Get.close(2);
     } catch (e) {
       SnackBarService.showError("Failed to save task".tr);

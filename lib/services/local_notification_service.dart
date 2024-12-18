@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -60,109 +61,137 @@ class LocalNotificationService extends GetxService {
       throw Exception('Task must be planned with plannedAt date');
     }
 
-    // Parse reminder time if set, otherwise use default
-    final format = DateFormat("h:mm a");
-    final reminderTime = task.reminderTime != null
-        ? format.parse(task.reminderTime!)
-        : format.parse(account.accountSettings.defaultNotificationsTime);
-
     final now = DateTime.now();
+    final notificationTime = _parseNotificationTime(task);
 
-    // Set reminder time to plannedAt date
-    DateTime baseNotification = DateTime(
-      task.plannedAt!.year,
-      task.plannedAt!.month,
-      task.plannedAt!.day,
-      reminderTime.hour,
-      reminderTime.minute,
-    );
+    // Calculate the base notification start time
+    DateTime baseNotification =
+        _calculateBaseNotification(task, notificationTime, now);
 
-    // If base notification is in the past, adjust based on repeat pattern
+    // If notification time is in the past, find next occurrence
     if (baseNotification.isBefore(now)) {
-      baseNotification = _adjustPastNotification(
-        baseNotification,
-        now,
-        task.repeats,
-      );
+      baseNotification =
+          _findNextOccurrence(baseNotification, now, task.repeats);
     }
 
-    // Adjust for allowed weekdays if needed
-    List<int> reminderWeekdays = task.reminderWeekdays != null
-        ? task.reminderWeekdays!
-        : account.accountSettings.defaultNotificationsWeekDays;
-    if (reminderWeekdays.isNotEmpty) {
+    // Apply weekday restrictions for non-hourly repeating tasks
+    if (task.repeats != "hourly" && task.repeats != "once") {
       baseNotification = _adjustForWeekdays(
         baseNotification,
-        reminderWeekdays,
-        task.repeats,
+        task.reminderWeekdays ??
+            account.accountSettings.defaultNotificationsWeekDays,
       );
     }
 
     return baseNotification;
   }
 
-  DateTime _adjustPastNotification(
-    DateTime baseDate,
-    DateTime now,
-    String repeatPattern,
-  ) {
+  DateTime _parseNotificationTime(Task task) {
+    final format = DateFormat("h:mm a");
+    return task.reminderTime != null
+        ? format.parse(task.reminderTime!)
+        : format.parse(account.accountSettings.defaultNotificationsTime);
+  }
+
+  DateTime _calculateBaseNotification(
+      Task task, DateTime notificationTime, DateTime now) {
+    // For "once", use exact notifyAt time
+    if (task.repeats == "once") {
+      return DateTime(
+        task.notifyAt.year,
+        task.notifyAt.month,
+        task.notifyAt.day,
+        notificationTime.hour,
+        notificationTime.minute,
+      );
+    }
+
+    // For hourly notifications, round to next hour from notifyAt or now
+    if (task.repeats == "hourly") {
+      final startFrom = task.notifyAt;
+      return DateTime(
+        startFrom.year,
+        startFrom.month,
+        startFrom.day,
+        startFrom.hour + 1, // Round to next hour
+        0, // Reset minutes to 00
+      );
+    }
+
+    // For other repeat patterns, use notifyAt or now
+    final startFrom = task.notifyAt;
+    return DateTime(
+      startFrom.year,
+      startFrom.month,
+      startFrom.day,
+      notificationTime.hour,
+      notificationTime.minute,
+    );
+  }
+
+  DateTime _findNextOccurrence(
+      DateTime baseDate, DateTime now, String repeatPattern) {
     switch (repeatPattern) {
       case "once":
-        // For "once" pattern, if the base date is in the past,
-        // we should notify today at the same time
-        final difference = now.difference(baseDate).inDays;
-        return baseDate.add(Duration(days: difference));
+        return baseDate; // For "once", we always use the exact notifyAt time
 
       case "hourly":
-        final difference = now.difference(baseDate).inHours;
-        return baseDate.add(Duration(hours: difference + 1));
+        final hoursToAdd = now.difference(baseDate).inHours + 1;
+        return baseDate.add(Duration(hours: hoursToAdd));
 
       case "daily":
-        final difference = now.difference(baseDate).inDays;
-        return baseDate.add(Duration(days: difference + 1));
+        final daysToAdd = now.difference(baseDate).inDays + 1;
+        return baseDate.add(Duration(days: daysToAdd));
 
       case "weekly":
-        final difference = now.difference(baseDate).inDays;
-        final weeksDifference = (difference / 7).ceil();
-        return baseDate.add(Duration(days: weeksDifference * 7));
+        final weeksToAdd = (now.difference(baseDate).inDays / 7).ceil();
+        return baseDate.add(Duration(days: weeksToAdd * 7));
 
       case "monthly":
         var nextDate = baseDate;
-        final monthsToAdd = (now.difference(baseDate).inDays / 30).ceil();
-        return DateTime(
-          nextDate.year,
-          nextDate.month + monthsToAdd,
-          nextDate.day,
-          nextDate.hour,
-          nextDate.minute,
-        );
+        while (nextDate.isBefore(now)) {
+          final nextMonth = nextDate.month + 1;
+          final nextYear = nextDate.year + (nextMonth > 12 ? 1 : 0);
+          nextDate = DateTime(
+            nextYear,
+            nextMonth > 12 ? 1 : nextMonth,
+            min(baseDate.day,
+                _daysInMonth(nextYear, nextMonth > 12 ? 1 : nextMonth)),
+            baseDate.hour,
+            baseDate.minute,
+          );
+        }
+        return nextDate;
 
       case "yearly":
         var nextDate = baseDate;
-        final yearsToAdd = (now.difference(baseDate).inDays / 365).ceil();
-        return DateTime(
-          nextDate.year + yearsToAdd,
-          nextDate.month,
-          nextDate.day,
-          nextDate.hour,
-          nextDate.minute,
-        );
+        while (nextDate.isBefore(now)) {
+          nextDate = DateTime(
+            nextDate.year + 1,
+            nextDate.month,
+            min(baseDate.day, _daysInMonth(nextDate.year + 1, nextDate.month)),
+            baseDate.hour,
+            baseDate.minute,
+          );
+        }
+        return nextDate;
 
       default:
         throw Exception('Invalid repeat pattern: $repeatPattern');
     }
   }
 
-  DateTime _adjustForWeekdays(
-    DateTime date,
-    List<int> allowedWeekdays,
-    String repeatPattern,
-  ) {
+  int _daysInMonth(int year, int month) {
+    return DateTime(year, month + 1, 0).day;
+  }
+
+  DateTime _adjustForWeekdays(DateTime date, List<int> allowedWeekdays) {
+    if (allowedWeekdays.isEmpty) return date;
+
     // Convert weekday to 0-6 format (Sunday = 0)
     final currentWeekday = date.weekday - 1;
 
     if (!allowedWeekdays.contains(currentWeekday)) {
-      // Find next allowed weekday
       final sortedWeekdays = List<int>.from(allowedWeekdays)..sort();
       final nextWeekday = sortedWeekdays.firstWhere(
         (weekday) => weekday > currentWeekday,
@@ -172,16 +201,6 @@ class LocalNotificationService extends GetxService {
       final daysToAdd = nextWeekday > currentWeekday
           ? nextWeekday - currentWeekday
           : 7 - currentWeekday + nextWeekday;
-
-      // For weekly/monthly/yearly notifications, only adjust if it's the first occurrence
-      if (repeatPattern == "weekly" ||
-          repeatPattern == "monthly" ||
-          repeatPattern == "yearly") {
-        final isFirstOccurrence = date.isAfter(DateTime.now());
-        if (!isFirstOccurrence) {
-          return date;
-        }
-      }
 
       return date.add(Duration(days: daysToAdd));
     }
@@ -203,21 +222,12 @@ class LocalNotificationService extends GetxService {
     try {
       final nextNotificationDate = calculateNextNotificationDate(task);
 
-      if (nextNotificationDate.year == 0) return;
-
       await _notifications.zonedSchedule(
         notificationId,
         task.title,
         task.description ?? '',
         tz.TZDateTime.from(nextNotificationDate, tz.local),
         NotificationDetails(
-          android: AndroidNotificationDetails(
-            'task_channel',
-            'Task Notifications',
-            channelDescription: 'Notifications for task reminders',
-            importance: Importance.high,
-            priority: Priority.high,
-          ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,

@@ -62,6 +62,39 @@ class DashboardScreen extends GetView<DashboardController> {
                             child: Text('Planning'.tr),
                           ),
                         ),
+                        ListSectionTile(
+                          padding: const EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            bottom: 4,
+                          ),
+                          leading: Icon(Iconsax.search_normal_1_outline),
+                          trailing: controller.searchQuery.value.isNotEmpty
+                              ? IconButton(
+                                  onPressed: () {
+                                    controller.searchTextController.clear();
+                                    controller.searchQuery.value = '';
+                                  },
+                                  icon: Icon(Iconsax.close_circle_outline))
+                              : null,
+                          bottom: TextField(
+                            decoration: InputDecoration(
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                              ),
+                              fillColor: Colors.transparent,
+                              hintText: 'Search',
+                              filled: true,
+                              contentPadding: const EdgeInsets.all(0),
+                            ),
+                            autofocus: false,
+                            controller: controller.searchTextController,
+                            enableSuggestions: true,
+                            onChanged: (value) {
+                              controller.searchQuery.value = value;
+                            },
+                          ),
+                        ),
                       ]),
                       ...controller.widgets.map(
                         (widget) => widget['widget'],

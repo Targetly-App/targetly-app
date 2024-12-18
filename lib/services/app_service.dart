@@ -121,7 +121,9 @@ class AppService extends GetxService {
 
     _connectivitySubscription = _connectivity.onConnectivityChanged
         .listen((List<ConnectivityResult> result) {
-      isOnline.value = !result.contains(ConnectivityResult.none);
+      bool isOnlineUpdated = !result.contains(ConnectivityResult.none);
+      if (isOnline.value == isOnlineUpdated) return;
+      isOnline.value = isOnlineUpdated;
       _handleConnectivityChange(isOnline.value);
     });
   }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:targetly/helpers.dart';
+import 'package:targetly/services/local_notification_service.dart';
 
 import '../constants.dart';
 import '../models/account.dart';
@@ -12,7 +14,8 @@ class TaskDetails extends StatelessWidget {
   const TaskDetails({super.key, required this.task});
 
   Account get account => Get.find<AppService>().currentAccount()!;
-
+  LocalNotificationService get _localNotificationService =>
+      Get.find<LocalNotificationService>();
   @override
   Widget build(BuildContext context) {
     // Getting impact level description based on the impact index
@@ -20,6 +23,15 @@ class TaskDetails extends StatelessWidget {
         account.accountSettings.defaultNotificationsWeekDays;
     String reminderTime =
         task.reminderTime ?? account.accountSettings.defaultNotificationsTime;
+    DateTime? nextNotification =
+        task.status == TaskStatus.planned.value && task.plannedAt != null
+            ? _localNotificationService.calculateNextNotificationDate(task)
+            : null;
+
+    // Duration timeToNextIteration = Duration.zero;
+    // if (nextNotification != null) {
+    //   timeToNextIteration = nextNotification.difference(DateTime.now());
+    // }
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -67,26 +79,49 @@ class TaskDetails extends StatelessWidget {
               ),
             ],
           ),
-          Row(
-            children: [
-              Expanded(
-                child: InfoCard(
-                  title: "Notifications days",
-                  content:
-                      weekDays.map((dayNum) => daysOfWeek[dayNum]).join(' '),
-                  widthFactor: 1 / 2,
+
+          if (nextNotification != null) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: InfoCard(
+                    title: "Notifications days",
+                    content:
+                        weekDays.map((dayNum) => daysOfWeek[dayNum]).join(' '),
+                    widthFactor: 1 / 2,
+                  ),
                 ),
-              ),
-              SizedBox(width: 10),
-              Expanded(
-                child: InfoCard(
-                  title: "Notifications time",
-                  content: reminderTime,
-                  widthFactor: 1 / 2,
+                SizedBox(width: 10),
+                Expanded(
+                  child: InfoCard(
+                    title: "Notifications time",
+                    content: reminderTime,
+                    widthFactor: 1 / 2,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: InfoCard(
+                    title: "Next notification",
+                    content: getFormattedDate(nextNotification,
+                        format: 'dd MMM yyyy HH:mm a'),
+                    widthFactor: 1 / 2,
+                  ),
+                ),
+                // SizedBox(width: 10),
+                // Expanded(
+                //   child: InfoCard(
+                //     title: "Notifications time",
+                //     content: reminderTime,
+                //     widthFactor: 1 / 2,
+                //   ),
+                // ),
+              ],
+            ),
+          ]
           //
           // Row(
           //   children: [

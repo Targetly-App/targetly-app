@@ -212,8 +212,7 @@ class TargetsService extends GetxService {
         calculateTasksTime(notCompletedTasks, allIterations: false);
 
     var details = TimeDetails.calculate(
-      maxHoursPerDay:
-          _appService.currentAccount.value!.settings['hoursPerDayForTasks'],
+      maxHoursPerDay: account.accountSettings.hoursPerDayForTasks,
       deadline: target.deadline!,
       totalTasksDuration: Duration(minutes: notCompletedTasksMinutes.toInt()),
     );

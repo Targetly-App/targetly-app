@@ -177,10 +177,12 @@ class PlanningStackController extends GetxController {
 
   void toggleTask(Task toggleTask) async {
     Task updatedTask = await _tasksService.setStatus(
-        toggleTask,
-        toggleTask.status == TaskStatus.todo.name
-            ? TaskStatus.planned.name
-            : TaskStatus.todo.name);
+      toggleTask,
+      toggleTask.status == TaskStatus.todo.name
+          ? TaskStatus.planned.name
+          : TaskStatus.todo.name,
+      resetIterations: false, // We don't need to reset iterations
+    );
     await _notificationService.updateTaskNotification(updatedTask);
   }
 
